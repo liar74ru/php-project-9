@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<ruleset name="My Slim Project Coding Standard">
+    <description>Code style configuration for Slim project</description>
+
+    <!-- Пути для проверки -->
+    <file>src</file>
+    <file>public</file>
+    <file>tests</file>
+
+    <!-- Исключения -->
+    <exclude-pattern>vendor/*</exclude-pattern>
+    <exclude-pattern>node_modules/*</exclude-pattern>
+    <exclude-pattern>storage/*</exclude-pattern>
+    <exclude-pattern>logs/*</exclude-pattern>
+
+    <!-- Используем стандарт PSR-12 -->
+    <rule ref="PSR12"/>
+
+    <!-- Дополнительные настройки -->
+    <rule ref="Generic.Files.LineLength">
+        <properties>
+            <property name="lineLimit" value="120"/>
+            <property name="absoluteLineLimit" value="150"/>
+        </properties>
+    </rule>
+
+    <!-- Игнорируем некоторые предупреждения -->
+    <rule ref="PSR1.Methods.CamelCapsMethodName.NotCamelCaps">
+        <exclude-pattern>tests/*</exclude-pattern>
+    </rule>
+</ruleset>
