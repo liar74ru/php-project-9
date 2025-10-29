@@ -13,28 +13,28 @@ class Connection
         self::loadEnvIfExists();
 
         $databaseUrl = $_ENV['DATABASE_URL'] ?? $_SERVER['DATABASE_URL'] ?? null;
-        
+
         if (!$databaseUrl) {
             throw new RuntimeException('DATABASE_URL environment variable is not set');
         }
 
         $pdo = self::createFromUrl($databaseUrl);
-        
+
         // Инициализируем таблицы при первом подключении
         self::initializeDatabase($pdo);
-        
+
         return $pdo;
     }
 
     private static function loadEnvIfExists(): void
     {
         $envPath = __DIR__ . '/../../';
-        
+
         // Загружаем .env только если файл существует (локальная разработка)
         if (file_exists($envPath . '.env')) {
             $dotenv = Dotenv::createImmutable($envPath);
             $dotenv->load();
-            
+
             // Опционально: проверяем обязательные переменные только в .env
             $dotenv->required('DATABASE_URL')->notEmpty();
         }
@@ -72,12 +72,12 @@ class Connection
 
         // Создаем DSN строку для PDO
         $dsn = "pgsql:host={$host};port={$port};dbname={$dbName}";
-        
+
         // Создаем подключение
         $pdo = new PDO($dsn, $username, $password);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-        
+
         return $pdo;
     }
 
@@ -85,14 +85,13 @@ class Connection
     {
         try {
             $sqlPath = __DIR__ . '/../../database.sql';
-            
+
             if (!file_exists($sqlPath)) {
                 throw new RuntimeException('Database schema file not found: ' . $sqlPath);
             }
-            
+
             $sql = file_get_contents($sqlPath);
             $pdo->exec($sql);
-            
         } catch (\PDOException $e) {
             // Игнорируем ошибки "table already exists", логируем остальные
             if (strpos($e->getMessage(), 'already exists') === false) {

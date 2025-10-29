@@ -32,7 +32,7 @@ function safe_html($value, $default = '—') {
                 </a>
               </td>
               <td><?= safe_html($url['last_check_date']) ?></td>
-              <td><?= safe_html($url['status_code']) ?></td>
+              <td><?= safe_html($url['last_status_code']) ?></td>
             </tr>
             <?php endforeach; ?>
           </tbody>

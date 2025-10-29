@@ -41,18 +41,18 @@ class UrlCheck
     {
         $sql = "INSERT INTO url_checks (url_id, status_code, h1, title, description, created_at) 
                 VALUES (?, ?, ?, ?, ?, NOW())";
-    
+
         $stmt = $this->db->prepare($sql);
         $stmt->execute([
             $urlId,
             $data['status_code'] ?? null,
-            $data['h1'] ?? null, 
+            $data['h1'] ?? null,
             $data['title'] ?? null,
             $data['description'] ?? null
             ]);
-    
+
         return (int)$this->db->lastInsertId();
-    }   
+    }
 
     public function getLastCheckDate($urlId)
     {
