@@ -43,6 +43,8 @@ class Connection
     {
         // Парсим URL как в задании: {provider}://{user}:{password}@{host}:{port}/{db}
         $url = parse_url($databaseUrl);
+
+        echo $url;
         
         if (!$url) {
             throw new RuntimeException('Invalid DATABASE_URL format. Cannot parse URL: ' . $databaseUrl);
@@ -82,11 +84,11 @@ class Connection
     private static function createFromSeparateVars(): PDO
     {
         // Fallback на отдельные переменные (для максимальной совместимости)
-        $host = $_ENV['DB_HOST'] ?? $_SERVER['DB_HOST'] ?? 'localhost';
-        $port = $_ENV['DB_PORT'] ?? $_SERVER['DB_PORT'] ?? '5432';
-        $database = $_ENV['DB_NAME'] ?? $_SERVER['DB_NAME'] ?? 'project9';
-        $username = $_ENV['DB_USER'] ?? $_SERVER['DB_USER'] ?? 'postgres_user';
-        $password = $_ENV['DB_PASSWORD'] ?? $_SERVER['DB_PASSWORD'] ?? 'postgres_password';
+        $host = $_ENV['DB_HOST'] ?? $_SERVER['DB_HOST'] ?? null;
+        $port = $_ENV['DB_PORT'] ?? $_SERVER['DB_PORT'] ?? null;
+        $database = $_ENV['DB_NAME'] ?? $_SERVER['DB_NAME'] ?? null;
+        $username = $_ENV['DB_USER'] ?? $_SERVER['DB_USER'] ?? null;
+        $password = $_ENV['DB_PASSWORD'] ?? $_SERVER['DB_PASSWORD'] ?? null;
 
         $dsn = "pgsql:host={$host};port={$port};dbname={$database}";
         
