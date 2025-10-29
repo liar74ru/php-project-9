@@ -43,9 +43,11 @@ class Connection
     {
         // Парсим URL как в задании: {provider}://{user}:{password}@{host}:{port}/{db}
         $url = parse_url($databaseUrl);
-
-        echo $url;
         
+        foreach ($url as $key => $value) {
+            echo "$key: $value\n";
+        }
+
         if (!$url) {
             throw new RuntimeException('Invalid DATABASE_URL format. Cannot parse URL: ' . $databaseUrl);
         }
@@ -88,7 +90,7 @@ class Connection
         $port = $_ENV['DB_PORT'] ?? $_SERVER['DB_PORT'] ?? null;
         $database = $_ENV['DB_NAME'] ?? $_SERVER['DB_NAME'] ?? null;
         $username = $_ENV['DB_USER'] ?? $_SERVER['DB_USER'] ?? null;
-        $password = $_ENV['DB_PASSWORD'] ?? $_SERVER['DB_PASSWORD'] ?? null;
+        $password = $_ENV['DB_PASSWORD'] ?? $_SERVER['DB_PASSWORD'] ?? 'postgres_password';
 
         $dsn = "pgsql:host={$host};port={$port};dbname={$database}";
         
