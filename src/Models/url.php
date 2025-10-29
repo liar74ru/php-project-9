@@ -3,68 +3,53 @@
 namespace Hexlet\Code\Models;
 
 use PDO;
+use Hexlet\Code\Services\Validator;
 
 class Url
 {
-    private PDO $db;
+    private PDO $pdo;
 
-    public function __construct(PDO $db)
+    public function __construct(PDO $pdo)
     {
-        $this->db = $db;
+        $this->pdo = $pdo;
     }
 
-    /**
-     * Найти все URL
-     */
     public function findAll(): array
     {
-        $stmt = $this->db->query("SELECT * FROM urls ORDER BY id DESC");
+        $stmt = $this->pdo->query("SELECT * FROM urls ORDER BY id DESC");
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /**
-     * Найти URL по ID
-     */
     public function find(int $id): ?array
     {
-        $stmt = $this->db->prepare("SELECT * FROM urls WHERE id = ?");
+        $stmt = $this->pdo->prepare("SELECT * FROM urls WHERE id = ?");
         $stmt->execute([$id]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        return $result ?: null;
+        $urlData = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $urlData ?: null;
     }
 
-    /**
-     * Найти URL по имени
-     */
     public function findByName(string $name): ?array
     {
-        $stmt = $this->db->prepare("SELECT * FROM urls WHERE name = ?");
+        $stmt = $this->pdo->prepare("SELECT * FROM urls WHERE name = ?");
         $stmt->execute([$name]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        return $result ?: null;
+        $urlData = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $urlData ?: null;
     }
 
-    /**
-     * Сохранить новый URL
-     */
     public function save(string $name): int
     {
-        $stmt = $this->db->prepare("INSERT INTO urls (name, created_at) VALUES (?, NOW())");
+        $stmt = $this->pdo->prepare("INSERT INTO urls (name, created_at) VALUES (?, NOW())");
         $stmt->execute([$name]);
-
-        return (int) $this->db->lastInsertId();
+        return (int)$this->pdo->lastInsertId();
     }
 
-    /**
-     * Проверить существует ли URL
-     */
-    public function exists(string $name): bool
+    public function validate(array $data): array
     {
-        $stmt = $this->db->prepare("SELECT id FROM urls WHERE name = ?");
-        $stmt->execute([$name]);
+        return Validator::validateUrl($data);
+    }
 
-        return (bool) $stmt->fetch(PDO::FETCH_ASSOC);
+    public function validateUrlString(string $url): array
+    {
+        return Validator::validateUrlSimple($url);
     }
 }

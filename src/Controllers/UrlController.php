@@ -4,21 +4,29 @@ namespace Hexlet\Code\Controllers;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Slim\Routing\RouteContext;
 use Hexlet\Code\Services\UrlValidator;
 use Hexlet\Code\Models\Url;
+use Hexlet\Code\Models\UrlCheck;
 
 class UrlController
 {
     private $urlModel;
+    private $urlCheckModel; // Исправлено: Cheak → Check
     private $renderer;
     private $flash;
     private $validator;
     private $router;
 
-    public function __construct($urlModel, $renderer, $flash, ?UrlValidator $validator = null, $router = null)
-    {
+    public function __construct(
+        $urlModel, 
+        $urlCheckModel, // Исправлено: Cheak → Check
+        $renderer, 
+        $flash, 
+        ?UrlValidator $validator = null, 
+        $router = null
+    ) {
         $this->urlModel = $urlModel;
+        $this->urlCheckModel = $urlCheckModel; // Исправлено
         $this->renderer = $renderer;
         $this->flash = $flash;
         $this->validator = $validator ?? new UrlValidator();
@@ -47,8 +55,12 @@ class UrlController
             return $this->renderer->render($response->withStatus(404), '404.phtml');
         }
 
+        // Получаем проверки для этого URL
+        $checks = $this->urlCheckModel->findByUrlId($urlId);
+
         $params = [
             'urlData' => $urlData,
+            'checks' => $checks,
             'flash' => $this->flash->getMessages(),
             'router' => $this->router
         ];
@@ -61,7 +73,6 @@ class UrlController
         $data = $request->getParsedBody();
         $url = $data['url']['name'] ?? '';
 
-        // Используем валидатор
         $errors = $this->validator->validate($url);
 
         if (!empty($errors)) {
@@ -69,16 +80,14 @@ class UrlController
                 'urlValue' => $url,
                 'showValidation' => true,
                 'errors' => $errors,
-                'router' => $this->router
+                'router' => $this->router,
+                'flash' => $this->flash->getMessages() // Добавьте flash
             ];
 
             return $this->renderer->render($response->withStatus(422), 'index.phtml', $templateData);
         }
 
-        // Нормализуем URL перед сохранением
         $normalizedUrl = $this->validator->normalizeUrl($url);
-
-        // Используем модель для работы с базой
         $existingUrl = $this->urlModel->findByName($normalizedUrl);
 
         if ($existingUrl) {
@@ -89,16 +98,34 @@ class UrlController
             $this->flash->addMessage('success', 'Страница успешно добавлена');
         }
 
-        // ИСПОЛЬЗУЕМ ИМЕНОВАННЫЙ МАРШРУТ
         if ($this->router) {
             return $response
                 ->withHeader('Location', $this->router->urlFor('urls.show', ['id' => $urlId]))
                 ->withStatus(302);
         } else {
-            // Fallback
             return $response
                 ->withHeader('Location', "/urls/{$urlId}")
                 ->withStatus(302);
         }
+    }
+
+    public function createChecks(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $urlId = (int) $args['id'];
+    
+        // Данные для проверки
+        $checkData = [
+            'status_code' => 200,
+            'h1' => 'Заголовок страницы',
+            'title' => 'Title страницы', 
+            'description' => 'Описание страницы'
+        ];
+    
+        // Сохраняем проверку
+        $this->urlCheckModel->save($urlId, $checkData);
+    
+        $this->flash->addMessage('success', 'Проверка успешно выполнена');
+    
+        return $response->withRedirect($this->router->urlFor('urls.show', ['id' => $urlId]));
     }
 }

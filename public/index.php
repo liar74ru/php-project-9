@@ -11,6 +11,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use DI\Container;
 use Hexlet\Code\Database\Connection;
 use Hexlet\Code\Models\Url;
+use Hexlet\Code\Models\UrlCheck;
 use Hexlet\Code\Controllers\UrlController;
 use Hexlet\Code\Services\UrlValidator;
 
@@ -29,12 +30,14 @@ $container->set('router', fn () => $app->getRouteCollector()->getRouteParser());
 
 // Domain services
 $container->set(Url::class, fn($container) => new Url($container->get('db')));
+$container->set(UrlCheck::class, fn($container) => new UrlCheck($container->get('db')));
 $container->set(UrlValidator::class, fn() => new UrlValidator());
 
 // Обновленный контроллер UrlController с внедрением зависимостей
 $container->set(UrlController::class, function ($container) {
     return new UrlController(
         $container->get(Url::class),
+        $container->get(UrlCheck::class),
         $container->get('renderer'),
         $container->get('flash'),
         $container->get(UrlValidator::class),
@@ -66,17 +69,6 @@ $app->get('/', function ($request, $response) {
 $app->post('/urls', [UrlController::class, 'store'])->setName('urls.store');
 $app->get('/urls', [UrlController::class, 'index'])->setName('urls.index');
 $app->get('/urls/{id}', [UrlController::class, 'show'])->setName('urls.show');
-
-$app->get('/debug-db', function ($request, $response) {
-    try {
-        $pdo = Hexlet\Code\Database\Connection::get();
-        $stmt = $pdo->query('SELECT version()');
-        $version = $stmt->fetchColumn();
-        
-        return $response->getBody()->write("Database connected! PostgreSQL version: " . $version);
-    } catch (Exception $e) {
-        return $response->getBody()->write("Database connection failed: " . $e->getMessage());
-    }
-});
+$app->post('/urls/{id}/checks', [UrlController::class, 'createChecks'])->setName('urls.checks.create');
 
 $app->run();

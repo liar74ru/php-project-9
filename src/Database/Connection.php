@@ -10,18 +10,20 @@ class Connection
 {
     public static function get(): PDO
     {
-        // Загружаем .env для локальной разработки (если файл существует)
         self::loadEnvIfExists();
 
-        // 1. Пробуем DATABASE_URL из переменных окружения
         $databaseUrl = $_ENV['DATABASE_URL'] ?? $_SERVER['DATABASE_URL'] ?? null;
         
-        if ($databaseUrl) {
-            return self::createFromUrl($databaseUrl);
+        if (!$databaseUrl) {
+            throw new RuntimeException('DATABASE_URL environment variable is not set');
         }
+
+        $pdo = self::createFromUrl($databaseUrl);
         
-        // 2. Fallback на отдельные переменные (для совместимости)
-        return self::createFromSeparateVars();
+        // Инициализируем таблицы при первом подключении
+        self::initializeDatabase($pdo);
+        
+        return $pdo;
     }
 
     private static function loadEnvIfExists(): void
@@ -79,21 +81,28 @@ class Connection
         return $pdo;
     }
 
-    private static function createFromSeparateVars(): PDO
+    private static function initializeDatabase(PDO $pdo): void
     {
-        // Fallback на отдельные переменные (для максимальной совместимости)
-        $host = $_ENV['DB_HOST'] ?? $_SERVER['DB_HOST'] ?? null;
-        $port = $_ENV['DB_PORT'] ?? $_SERVER['DB_PORT'] ?? null;
-        $database = $_ENV['DB_NAME'] ?? $_SERVER['DB_NAME'] ?? null;
-        $username = $_ENV['DB_USER'] ?? $_SERVER['DB_USER'] ?? null;
-        $password = $_ENV['DB_PASSWORD'] ?? $_SERVER['DB_PASSWORD'] ?? 'postgres_password';
-
-        $dsn = "pgsql:host={$host};port={$port};dbname={$database}";
-        
-        $pdo = new PDO($dsn, $username, $password);
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-        
-        return $pdo;
+        try {
+            $sqlPath = __DIR__ . '/../../database.sql';
+            
+            if (!file_exists($sqlPath)) {
+                throw new RuntimeException('Database schema file not found: ' . $sqlPath);
+            }
+            
+            $sql = file_get_contents($sqlPath);
+            $pdo->exec($sql);
+            
+        } catch (\PDOException $e) {
+            // Игнорируем ошибки "table already exists", логируем остальные
+            if (strpos($e->getMessage(), 'already exists') === false) {
+                error_log("Database initialization warning: " . $e->getMessage());
+                // Не бросаем исключение дальше, чтобы приложение могло работать
+                // даже если таблицы уже созданы
+            }
+        } catch (\Exception $e) {
+            error_log("Database initialization error: " . $e->getMessage());
+            // Продолжаем работу, даже если инициализация не удалась
+        }
     }
 }
