@@ -9,40 +9,32 @@ class Connection
 {
     public static function get(): PDO
     {
-        // 1. Пробуем DATABASE_URL
         $databaseUrl = $_ENV['DATABASE_URL'] ?? $_SERVER['DATABASE_URL'] ?? null;
         
         if ($databaseUrl) {
-            return self::createFromUrl($databaseUrl);
+            return self::createFromConnectionString($databaseUrl);
         }
         
-        // 2. Пробуем отдельные переменные
+        // Fallback на отдельные переменные
         return self::createFromSeparateVars();
     }
 
-    private static function createFromUrl(string $databaseUrl): PDO
+    private static function createFromConnectionString(string $connectionString): PDO
     {
-        $url = parse_url($databaseUrl);
-
-        $required = ['user', 'pass', 'host', 'path'];
-        foreach ($required as $component) {
-            if (!isset($url[$component])) {
-                throw new RuntimeException("Missing {$component} in DATABASE_URL");
-            }
+        // Render.com использует формат: postgresql://[user]:[password]@[host]:[port]/[database]
+        $pattern = '/^postgresql:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/(.+)$/';
+        
+        if (preg_match($pattern, $connectionString, $matches)) {
+            $username = $matches[1];
+            $password = $matches[2];
+            $host = $matches[3];
+            $port = $matches[4];
+            $database = $matches[5];
+            
+            return self::createPdo($host, $port, $database, $username, $password);
         }
-
-        $username = $url['user'];
-        $password = $url['pass'];
-        $host = $url['host'];
-        $port = $url['port'] ?? '5432';
-        $dbname = ltrim($url['path'], '/');
-
-        $dsn = "pgsql:host={$host};port={$port};dbname={$dbname}";
         
-        $pdo = new PDO($dsn, $username, $password);
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        
-        return $pdo;
+        throw new RuntimeException('Invalid DATABASE_URL format. Expected: postgresql://user:password@host:port/database');
     }
 
     private static function createFromSeparateVars(): PDO
@@ -53,10 +45,16 @@ class Connection
         $username = $_ENV['DB_USER'] ?? $_SERVER['DB_USER'] ?? 'postgres_user';
         $password = $_ENV['DB_PASSWORD'] ?? $_SERVER['DB_PASSWORD'] ?? 'postgres_password';
 
+        return self::createPdo($host, $port, $database, $username, $password);
+    }
+
+    private static function createPdo(string $host, string $port, string $database, string $username, string $password): PDO
+    {
         $dsn = "pgsql:host={$host};port={$port};dbname={$database}";
         
         $pdo = new PDO($dsn, $username, $password);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
         
         return $pdo;
     }
