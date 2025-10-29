@@ -1,6 +1,5 @@
 <?php
 
-// Подключение автозагрузки через composer
 require __DIR__ . '/../vendor/autoload.php';
 
 use Slim\Views\PhpRenderer;
@@ -65,7 +64,6 @@ $app->get('/', function ($request, $response) {
     ];
     return $this->get('renderer')->render($response, "/index.phtml", $params);
 })->setName('home');
-
 $app->post('/urls', [UrlController::class, 'store'])->setName('urls.store');
 $app->get('/urls', [UrlController::class, 'index'])->setName('urls.index');
 $app->get('/urls/{id}', [UrlController::class, 'show'])->setName('urls.show');

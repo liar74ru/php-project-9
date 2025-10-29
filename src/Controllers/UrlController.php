@@ -11,7 +11,7 @@ use Hexlet\Code\Models\UrlCheck;
 class UrlController
 {
     private $urlModel;
-    private $urlCheckModel; // Исправлено: Cheak → Check
+    private $urlCheckModel;
     private $renderer;
     private $flash;
     private $validator;
@@ -19,14 +19,14 @@ class UrlController
 
     public function __construct(
         $urlModel, 
-        $urlCheckModel, // Исправлено: Cheak → Check
+        $urlCheckModel,
         $renderer, 
         $flash, 
         ?UrlValidator $validator = null, 
         $router = null
     ) {
         $this->urlModel = $urlModel;
-        $this->urlCheckModel = $urlCheckModel; // Исправлено
+        $this->urlCheckModel = $urlCheckModel;
         $this->renderer = $renderer;
         $this->flash = $flash;
         $this->validator = $validator ?? new UrlValidator();
@@ -36,9 +36,21 @@ class UrlController
     public function index(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         $urls = $this->urlModel->findAll();
+        $result = [];
+    
+        foreach ($urls as $url) {
+            $lastCheck = $this->urlCheckModel->findLastCheck($url['id']);
+        
+            $result[] = [
+                'id' => $url['id'],
+                'name' => $url['name'],
+                'last_check_date' => $lastCheck['created_at'] ?? null,
+                'last_status_code' => $lastCheck['status_code'] ?? null
+            ];
+        }
 
         $params = [
-            'urls' => $urls,
+            'urls' => $result,
             'router' => $this->router,
             'flash' => $this->flash->getMessages()
         ];
@@ -81,7 +93,7 @@ class UrlController
                 'showValidation' => true,
                 'errors' => $errors,
                 'router' => $this->router,
-                'flash' => $this->flash->getMessages() // Добавьте flash
+                'flash' => $this->flash->getMessages()
             ];
 
             return $this->renderer->render($response->withStatus(422), 'index.phtml', $templateData);
