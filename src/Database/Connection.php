@@ -43,10 +43,6 @@ class Connection
     {
         // Парсим URL как в задании: {provider}://{user}:{password}@{host}:{port}/{db}
         $url = parse_url($databaseUrl);
-        
-        foreach ($url as $key => $value) {
-            echo "$key: $value\n";
-        }
 
         if (!$url) {
             throw new RuntimeException('Invalid DATABASE_URL format. Cannot parse URL: ' . $databaseUrl);
