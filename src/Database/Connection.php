@@ -4,41 +4,60 @@ namespace Hexlet\Code\Database;
 
 use PDO;
 use RuntimeException;
-use Dotenv\Dotenv;
 
 class Connection
 {
     public static function get(): PDO
     {
-        $dotenv = Dotenv::createImmutable(__DIR__ . '/../../');
-        $dotenv->load();
-
-        $dotenv->required('DATABASE_URL');
-
-        if (!isset($_ENV['DATABASE_URL'])) {
-            throw new RuntimeException('DATABASE_URL is not set in environment variables.');
+        // 1. Пробуем DATABASE_URL
+        $databaseUrl = $_ENV['DATABASE_URL'] ?? $_SERVER['DATABASE_URL'] ?? null;
+        
+        if ($databaseUrl) {
+            return self::createFromUrl($databaseUrl);
         }
+        
+        // 2. Пробуем отдельные переменные
+        return self::createFromSeparateVars();
+    }
 
-        $databaseUrl = parse_url($_ENV['DATABASE_URL']);
+    private static function createFromUrl(string $databaseUrl): PDO
+    {
+        $url = parse_url($databaseUrl);
 
-        $required = ['user', 'pass', 'host', 'port', 'path'];
+        $required = ['user', 'pass', 'host', 'path'];
         foreach ($required as $component) {
-            if (!isset($databaseUrl[$component])) {
-                throw new RuntimeException("Не хватает компонента {$component} в DATABASE_URL");
+            if (!isset($url[$component])) {
+                throw new RuntimeException("Missing {$component} in DATABASE_URL");
             }
         }
 
-        $username = $databaseUrl['user'];
-        $password = $databaseUrl['pass'];
-        $host = $databaseUrl['host'];
-        $port = $databaseUrl['port'];
-        $dbname = ltrim($databaseUrl['path'], '/');
+        $username = $url['user'];
+        $password = $url['pass'];
+        $host = $url['host'];
+        $port = $url['port'] ?? '5432';
+        $dbname = ltrim($url['path'], '/');
 
         $dsn = "pgsql:host={$host};port={$port};dbname={$dbname}";
-
+        
         $pdo = new PDO($dsn, $username, $password);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        
+        return $pdo;
+    }
 
+    private static function createFromSeparateVars(): PDO
+    {
+        $host = $_ENV['DB_HOST'] ?? $_SERVER['DB_HOST'] ?? 'localhost';
+        $port = $_ENV['DB_PORT'] ?? $_SERVER['DB_PORT'] ?? '5432';
+        $database = $_ENV['DB_NAME'] ?? $_SERVER['DB_NAME'] ?? 'project9';
+        $username = $_ENV['DB_USER'] ?? $_SERVER['DB_USER'] ?? 'postgres_user';
+        $password = $_ENV['DB_PASSWORD'] ?? $_SERVER['DB_PASSWORD'] ?? 'postgres_password';
+
+        $dsn = "pgsql:host={$host};port={$port};dbname={$database}";
+        
+        $pdo = new PDO($dsn, $username, $password);
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        
         return $pdo;
     }
 }

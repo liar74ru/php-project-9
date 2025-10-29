@@ -16,7 +16,7 @@ class UrlController
     private $validator;
     private $router;
 
-    public function __construct($urlModel, $renderer, $flash, UrlValidator $validator = null, $router = null)
+    public function __construct($urlModel, $renderer, $flash, ?UrlValidator $validator = null, $router = null)
     {
         $this->urlModel = $urlModel;
         $this->renderer = $renderer;
