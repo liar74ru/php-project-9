@@ -1,0 +1,81 @@
+<?= $this->fetch('header.phtml') ?>
+
+<main class="flex-grow-1">
+  <div class="container-lg mt-3">
+    <!-- Flash сообщения -->
+    <?php if (isset($flash['success'])): ?>
+      <?php foreach ($flash['success'] as $message): ?>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+          <?= htmlspecialchars($message) ?>
+        </div>
+      <?php endforeach; ?>
+    <?php endif; ?>
+
+    <?php if ($urlData): ?>
+      <h1>Сайт: <?= htmlspecialchars($urlData['name']) ?></h1>
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover text-nowrap" data-test="url">
+          <tbody>
+            <tr>
+              <td>ID</td>
+              <td><?= htmlspecialchars($urlData['id']) ?></td>
+            </tr>
+            <tr>
+              <td>Имя</td>
+              <td><?= htmlspecialchars($urlData['name']) ?></td>
+            </tr>
+            <tr>
+              <td>Дата создания</td>
+              <td><?= htmlspecialchars($urlData['created_at']) ?></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 class="mt-5 mb-3">Проверки</h2>
+      <form method="post" action="/urls/<?= htmlspecialchars($urlData['id']) ?>/checks">
+        <input type="submit" class="btn btn-primary" value="Запустить проверку">
+      </form>
+      
+      <div class="table-responsive mt-3">
+        <table class="table table-bordered table-hover" data-test="checks">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Код ответа</th>
+              <th>h1</th>
+              <th>title</th>
+              <th>description</th>
+              <th>Дата создания</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Динамические данные проверок -->
+            <?php if (isset($checks) && !empty($checks)): ?>
+              <?php foreach ($checks as $check): ?>
+                <tr>
+                  <td><?= htmlspecialchars($check['id']) ?></td>
+                  <td><?= htmlspecialchars($check['status_code']) ?></td>
+                  <td class="text-break"><?= htmlspecialchars($check['h1'] ?? '') ?></td>
+                  <td class="text-break"><?= htmlspecialchars($check['title'] ?? '') ?></td>
+                  <td class="text-break"><?= htmlspecialchars($check['description'] ?? '') ?></td>
+                  <td><?= htmlspecialchars($check['created_at']) ?></td>
+                </tr>
+              <?php endforeach; ?>
+            <?php else: ?>
+              <tr>
+                <td colspan="6" class="text-center text-muted">
+                  Проверки не проводились
+                </td>
+              </tr>
+            <?php endif; ?>
+          </tbody>
+        </table>
+      </div>
+    <?php else: ?>
+      <div class="alert alert-danger">URL не найден</div>
+    <?php endif; ?>
+  </div>    
+</main>
+
+<?= $this->fetch('footer.phtml') ?>
