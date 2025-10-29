@@ -1,4 +1,13 @@
 <?= $this->fetch('header.phtml') ?>
+<?php
+// Добавьте в начало шаблона
+function safe_html($value, $default = '—') {
+    if ($value === null) {
+        return $default;
+    }
+    return htmlspecialchars((string) $value);
+}
+?>
 
 <main class="flex-grow-1">
   <div class="container-lg mt-3">
@@ -22,8 +31,8 @@
                   <?= htmlspecialchars($url['name']) ?>
                 </a>
               </td>
-              <td><?= htmlspecialchars($url['last_check_date']) ?></td>
-              <td><?= htmlspecialchars($url['status_code']) ?></td>
+              <td><?= safe_html($url['last_check_date']) ?></td>
+              <td><?= safe_html($url['status_code']) ?></td>
             </tr>
             <?php endforeach; ?>
           </tbody>
