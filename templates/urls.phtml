@@ -1,6 +1,5 @@
-<?= $this->fetch('header.phtml') ?>
+<?= $this->fetch('header.phtml', ['router' => $router]) ?>
 <?php
-// Добавьте в начало шаблона
 function safe_html($value, $default = '—') {
     if ($value === null) {
         return $default;

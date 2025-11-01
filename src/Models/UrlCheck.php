@@ -3,6 +3,7 @@
 namespace Hexlet\Code\Models;
 
 use PDO;
+use Carbon\Carbon;
 
 class UrlCheck
 {
@@ -13,9 +14,6 @@ class UrlCheck
         $this->db = $db;
     }
 
-    /**
-     * Найти все URL
-     */
     public function findByCheaks(): array
     {
         $stmt = $this->db->query("SELECT * FROM url_checks ORDER BY created_at DESC");
@@ -40,19 +38,22 @@ class UrlCheck
     public function save($urlId, $data)
     {
         $sql = "INSERT INTO url_checks (url_id, status_code, h1, title, description, created_at) 
-                VALUES (?, ?, ?, ?, ?, NOW())";
+                VALUES (?, ?, ?, ?, ?, ?)";
+
+        $createdAt = Carbon::now()->toDateTimeString();
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute([
             $urlId,
             $data['status_code'] ?? null,
-            $data['h1'] ?? null,
+            $data['h1'] ?? null, 
             $data['title'] ?? null,
-            $data['description'] ?? null
-            ]);
+            $data['description'] ?? null,
+            $createdAt
+        ]);
 
         return (int)$this->db->lastInsertId();
-    }
+    }   
 
     public function getLastCheckDate($urlId)
     {

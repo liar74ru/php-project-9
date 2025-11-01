@@ -7,32 +7,32 @@ use Psr\Http\Message\ServerRequestInterface;
 use Hexlet\Code\Services\UrlValidator;
 use Hexlet\Code\Models\Url;
 use Hexlet\Code\Models\UrlCheck;
+use Slim\Views\PhpRenderer;
+use Slim\Flash\Messages;
+use Slim\Routing\RouteParser;
 
 class UrlController
 {
-    private $urlModel;
-    private $urlCheckModel;
-    private $renderer;
-    private $flash;
-    private $validator;
-    private $router;
-
     public function __construct(
-        $urlModel,
-        $urlCheckModel,
-        $renderer,
-        $flash,
-        ?UrlValidator $validator = null,
-        $router = null
-    ) {
-        $this->urlModel = $urlModel;
-        $this->urlCheckModel = $urlCheckModel;
-        $this->renderer = $renderer;
-        $this->flash = $flash;
-        $this->validator = $validator ?? new UrlValidator();
-        $this->router = $router;
-    }
+    private Url $urlModel,
+    private UrlCheck $urlCheckModel,
+    private PhpRenderer $renderer,
+    private Messages $flash,
+    private UrlValidator $validator,
+    private RouteParser $router
+    ) {}
 
+    public function home(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        $params = [
+            'urlValue' => '',
+            'errors' => [],
+            'router' => $this->router,
+            'flash' => $this->flash->getMessages()
+        ];
+        return $this->renderer->render($response, "/index.phtml", $params);
+
+    }
     public function index(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         $urls = $this->urlModel->findAll();
@@ -64,7 +64,7 @@ class UrlController
         $urlData = $this->urlModel->find($urlId);
 
         if (!$urlData) {
-            return $this->renderer->render($response->withStatus(404), '404.phtml');
+            return $this->renderer->render($response->withStatus(404), '404.phtml', ['router' => $this->router]);
         }
 
         // Получаем проверки для этого URL

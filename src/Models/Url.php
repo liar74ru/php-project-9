@@ -3,6 +3,7 @@
 namespace Hexlet\Code\Models;
 
 use PDO;
+use Carbon\Carbon;
 
 class Url
 {
@@ -32,8 +33,8 @@ class Url
     }
     public function save(string $name): int
     {
-        $stmt = $this->db->prepare("INSERT INTO urls (name, created_at) VALUES (?, NOW())");
-        $stmt->execute([$name]);
+        $stmt = $this->db->prepare("INSERT INTO urls (name, created_at) VALUES (?, ?)");
+        $stmt->execute([$name, Carbon::now()->toDateTimeString()]);
         return (int) $this->db->lastInsertId();
     }
     public function exists(string $name): bool
