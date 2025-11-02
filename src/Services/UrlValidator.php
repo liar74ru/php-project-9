@@ -14,7 +14,7 @@ class UrlValidator
         if (
             filter_var($url, FILTER_VALIDATE_URL) === false
             || strlen($url) > 255
-            || pathinfo($url, PATHINFO_EXTENSION) === ''
+            || parse_url($url, PHP_URL_HOST) === null
         ) {
             return [
                 'errorMessage' => 'Некорректный URL'
