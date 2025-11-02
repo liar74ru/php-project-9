@@ -3,7 +3,11 @@
 Учебное веб‑приложение на PHP с использованием Slim Framework и PostgreSQL.  
 Приложение позволяет добавлять URL, запускать проверку страницы (получить HTTP‑код, title, h1, meta description) и просматривать историю проверок.
 
-Стек:
+## Демо
+
+[https://php-project-9-gfi1.onrender.com](https://php-project-9-gfi1.onrender.com)
+
+## Стек:
 - PHP 8+
 - Slim Framework
 - PDO (PostgreSQL)
@@ -47,17 +51,22 @@ php -S 0.0.0.0:8000 -t public public/index.php
 
 В проекте используется PostgreSQL (файл инициализации `database.sql` в корне). Для разработки:
 
-Импортировать файл схемы в существующую базу через psql:
+Для локального использования создайте .env файл:
 
 ```bash
-psql "postgresql://user:password@host:5432/dbname" -f database.sql
+env
+
+DATABASE_URL=pgsql://user:pass@host:5432/dbname
 ```
 
-Пример (локально, если DATABASE_URL экспортирован):
+Импортируйте схему:
 
 ```bash
-export DATABASE_URL="pgsql://postgres:postgres@127.0.0.1:5432/app"
-psql "$DATABASE_URL" -f database.sql
+# Нужное значение берем из External Database Url
+# Экспортируем переменную окружения, чтобы командная оболочка видела эту переменную
+export DATABASE_URL=postgresql://janedoe:mypassword@localhost:5432/mydb
+# В такой команде выполнятся все инструкции из файла
+psql -a -d $DATABASE_URL -f database.sql
 ```
 
 ## Описание основных маршрутов (API)
@@ -80,6 +89,30 @@ curl -X POST http://localhost:8000/urls \
 ```bash
 curl -X POST http://localhost:8000/urls/1/checks
 ```
+
+## Структура проекта
+
+```bash
+php-project-9/
+├── src/
+│   ├── Controllers/     # Контроллеры приложения
+│   ├── Models/          # Модели данных (Url, UrlCheck)
+│   ├── Services/        # Бизнес-логика
+│   └── Database/        # Работа с базой данных
+├── tests/               # PHPUnit тесты
+├── public/              # Публичная директория
+├── templates/           # PHTML шаблоны
+└── database.sql         # Схема базы данных
+```
+
+## Структура проекта (важные директории)
+
+- `public/` — точка входа (index.php) и статические файлы.
+- `src/` — исходный код (Controllers, Models, Services, Database).
+- `templates/` — PHTML шаблоны.
+- `tests/` — PHPUnit тесты.
+- `database.sql` — SQL схема / начальные миграции.
+- `.vscode/settings.json` — настройки workspace (phpValidate, inline suggestions и т.д.)
 
 ## Тесты
 
@@ -119,15 +152,6 @@ make lint-fix
 - Ошибки 500/404:
   - В `public/index.php` зарегистрированы кастомные обработчики ошибок (ErrorController). При отладке включите `displayErrorDetails: true` только локально.
 
-## Структура проекта (важные директории)
-
-- `public/` — точка входа (index.php) и статические файлы.
-- `src/` — исходный код (Controllers, Models, Services, Database).
-- `templates/` — PHTML шаблоны.
-- `tests/` — PHPUnit тесты.
-- `database.sql` — SQL схема / начальные миграции.
-- `.vscode/settings.json` — настройки workspace (phpValidate, inline suggestions и т.д.)
-
 ## Отладка и распространённые проблемы
 
 - Ошибка "не является допустимым исполняемым PHP‑файлом" в VS Code:
@@ -155,8 +179,6 @@ make lint-fix
 ```bash
 composer install
 ```
-
-Если не установлен `composer` локально, используйте контейнер или Docker через `docker-compose`.
 
 ## Лицензия
 
