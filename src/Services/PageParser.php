@@ -9,7 +9,7 @@ class PageParser
     public function parsePageContent(string $html): array
     {
         $document = new Document($html);
-        
+
         return [
             'h1' => $this->trimText($this->extractH1($document)),
             'title' => $this->trimText($this->extractTitle($document)),

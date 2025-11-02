@@ -10,12 +10,13 @@ class UrlCheckService
         private UrlCheck $urlCheckModel,
         private HttpClient $httpClient,
         private PageParser $pageParser
-    ) {}
+    ) {
+    }
 
     public function performCheck(int $urlId, string $url): array
     {
         $httpResult = $this->httpClient->fetchUrl($url);
-        
+
         // Если запрос не удался
         if (!$httpResult['success']) {
             $checkData = [
@@ -24,12 +25,12 @@ class UrlCheckService
                 'title' => null,
                 'description' => $httpResult['error'] ?? 'Unknown error'
             ];
-            
+
             // Сохраняем только если есть статус код
             if ($httpResult['status_code'] !== null) {
                 $this->urlCheckModel->save($urlId, $checkData);
             }
-            
+
             return ['success' => false, 'check_data' => $checkData];
         }
 
@@ -44,7 +45,7 @@ class UrlCheckService
         ];
 
         $this->urlCheckModel->save($urlId, $checkData);
-        
+
         return [
             'success' => true,
             'check_data' => $checkData

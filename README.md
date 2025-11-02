@@ -47,7 +47,7 @@ php -S 0.0.0.0:8000 -t public public/index.php
 
 В проекте используется PostgreSQL (файл инициализации `database.sql` в корне). Для разработки:
 
-Или импортировать файл схемы в существующую базу через psql:
+Импортировать файл схемы в существующую базу через psql:
 
 ```bash
 psql "postgresql://user:password@host:5432/dbname" -f database.sql
@@ -106,8 +106,6 @@ make lint
 ```bash
 make lint-fix
 ```
-
-Если PHPCS жалуется на BOM или файл до `<?php`, убедитесь, что файлы начинаются строго с `<?php` и не содержат BOM (UTF‑8 BOM).
 
 ## Полезные советы по разработке
 
