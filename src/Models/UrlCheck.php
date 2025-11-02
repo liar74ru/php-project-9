@@ -46,14 +46,14 @@ class UrlCheck
         $stmt->execute([
             $urlId,
             $data['status_code'] ?? null,
-            $data['h1'] ?? null, 
+            $data['h1'] ?? null,
             $data['title'] ?? null,
             $data['description'] ?? null,
             $createdAt
         ]);
 
         return (int)$this->db->lastInsertId();
-    }   
+    }
 
     public function getLastCheckDate($urlId)
     {

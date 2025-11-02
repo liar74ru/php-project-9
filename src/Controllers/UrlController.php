@@ -5,22 +5,26 @@ namespace Hexlet\Code\Controllers;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Hexlet\Code\Services\UrlValidator;
+use Hexlet\Code\Services\PageParser;
+use Hexlet\Code\Services\HttpClient;
+use Hexlet\Code\Services\UrlCheckService;
 use Hexlet\Code\Models\Url;
 use Hexlet\Code\Models\UrlCheck;
 use Slim\Views\PhpRenderer;
 use Slim\Flash\Messages;
 use Slim\Routing\RouteParser;
+use GuzzleHttp\Client;
 
 class UrlController
 {
     public function __construct(
-    private Url $urlModel,
-    private UrlCheck $urlCheckModel,
-    private PhpRenderer $renderer,
-    private Messages $flash,
-    private UrlValidator $validator,
-    private RouteParser $router
-    ) {}
+        private Url $urlModel,
+        private UrlCheck $urlCheckModel,
+        private PhpRenderer $renderer,
+        private Messages $flash,
+        private RouteParser $router
+    ) {
+    }
 
     public function home(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
@@ -31,7 +35,6 @@ class UrlController
             'flash' => $this->flash->getMessages()
         ];
         return $this->renderer->render($response, "/index.phtml", $params);
-
     }
     public function index(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
@@ -85,13 +88,14 @@ class UrlController
         $data = $request->getParsedBody();
         $url = $data['url']['name'] ?? '';
 
-        $errors = $this->validator->validate($url);
+        $validator = new UrlValidator();
+        $normalized = $validator->validate($url);
 
-        if (!empty($errors)) {
+        if (!empty($normalized['errorMessage'])) {
             $templateData = [
                 'urlValue' => $url,
                 'showValidation' => true,
-                'errors' => $errors,
+                'errors' => $normalized,
                 'router' => $this->router,
                 'flash' => $this->flash->getMessages()
             ];
@@ -99,26 +103,21 @@ class UrlController
             return $this->renderer->render($response->withStatus(422), 'index.phtml', $templateData);
         }
 
-        $normalizedUrl = $this->validator->normalizeUrl($url);
-        $existingUrl = $this->urlModel->findByName($normalizedUrl);
+        $existingUrl = $this->urlModel->findByName($normalized['url']);
 
         if ($existingUrl) {
             $urlId = $existingUrl['id'];
-            $this->flash->addMessage('success', 'Страница уже существует');
+            $this->flash->addMessage('info', 'Страница уже существует');
+            $location = $this->router->urlFor('urls.show', ['id' => $urlId]);
         } else {
-            $urlId = $this->urlModel->save($normalizedUrl);
+            $urlId = $this->urlModel->save($normalized['url']);
             $this->flash->addMessage('success', 'Страница успешно добавлена');
+            $location = "/urls/{$urlId}";
         }
 
-        if ($this->router) {
-            return $response
-                ->withHeader('Location', $this->router->urlFor('urls.show', ['id' => $urlId]))
-                ->withStatus(302);
-        } else {
-            return $response
-                ->withHeader('Location', "/urls/{$urlId}")
-                ->withStatus(302);
-        }
+        return $response
+            ->withHeader('Location', $location)
+            ->withStatus(302);
     }
 
     public function createChecks(
@@ -127,19 +126,25 @@ class UrlController
         array $args
     ): ResponseInterface {
         $urlId = (int) $args['id'];
+        $urlData = $this->urlModel->find($urlId);
 
-        // Данные для проверки
-        $checkData = [
-            'status_code' => 200,
-            'h1' => 'Заголовок страницы',
-            'title' => 'Title страницы',
-            'description' => 'Описание страницы'
-        ];
+        if (!$urlData) {
+            return $this->renderer->render($response->withStatus(404), '404.phtml', ['router' => $this->router]);
+        }
 
-        // Сохраняем проверку
-        $this->urlCheckModel->save($urlId, $checkData);
+        $urlCheckService = new UrlCheckService(
+            $this->urlCheckModel,
+            new HttpClient(),
+            new PageParser()
+        );
 
-        $this->flash->addMessage('success', 'Проверка успешно выполнена');
+        $result = $urlCheckService->performCheck($urlId, $urlData['name']);
+
+        if ($result['success']) {
+            $this->flash->addMessage('success', 'Страница успешно проверена');
+        } else {
+            $this->flash->addMessage('danger', 'Произошла ошибка при проверке, не удалось подключится');
+        }
 
         return $response->withRedirect($this->router->urlFor('urls.show', ['id' => $urlId]));
     }

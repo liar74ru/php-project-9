@@ -30,7 +30,7 @@ dump: # создание дампа базы данных
 	composer dump-autoload
 
 lint: # проверка кода на коректность
-	composer exec --verbose phpcs -- --standard=PSR12 src --ignore=coverage-report/
+	composer exec --verbose phpcs -- --standard=PSR12 src public --ignore=coverage-report/
 
 lint-fix: # исправление ошибок в коде
-	composer exec --verbose phpcbf -- --standard=PSR12 src 
+	composer exec --verbose phpcbf -- --standard=PSR12 src public --ignore=coverage-report/

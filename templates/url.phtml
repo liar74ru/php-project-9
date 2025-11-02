@@ -3,13 +3,17 @@
 <main class="flex-grow-1">
   <div class="container-lg mt-3">
     <!-- Flash сообщения -->
-    <?php if (isset($flash['success'])): ?>
-      <?php foreach ($flash['success'] as $message): ?>
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-          <?= htmlspecialchars($message) ?>
+    <?php if (!empty($flash)): ?>
+  <div class="flash-messages">
+    <?php foreach ($flash as $type => $messages): ?>
+      <?php foreach ($messages as $msg): ?>
+        <div class="alert alert-<?= $type ?>">
+          <?= htmlspecialchars($msg) ?>
         </div>
       <?php endforeach; ?>
-    <?php endif; ?>
+    <?php endforeach; ?>
+  </div>
+<?php endif; ?>
 
     <?php if ($urlData): ?>
       <h1>Сайт: <?= htmlspecialchars($urlData['name']) ?></h1>

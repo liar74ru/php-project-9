@@ -34,7 +34,6 @@ $container->set(ResponseFactoryInterface::class, fn() => $app->getResponseFactor
 // Модели
 $container->set(Url::class, fn($container) => new Url($container->get('db')));
 $container->set(UrlCheck::class, fn($container) => new UrlCheck($container->get('db')));
-$container->set(UrlValidator::class, fn() => new UrlValidator());
 
 // Контроллер UrlController с внедрением зависимостей
 $container->set(UrlController::class, function ($container) {
@@ -43,7 +42,6 @@ $container->set(UrlController::class, function ($container) {
         $container->get(UrlCheck::class),
         $container->get('renderer'),
         $container->get('flash'),
-        $container->get(UrlValidator::class),
         $container->get('router')
     );
 });

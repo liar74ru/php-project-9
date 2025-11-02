@@ -12,7 +12,8 @@ class ErrorController
         private \Slim\Views\PhpRenderer $renderer,
         private \Slim\Interfaces\RouteParserInterface $router,
         private ResponseFactoryInterface $responseFactory
-    ) {}
+    ) {
+    }
 
     public function notFound(
         ServerRequestInterface $request,
