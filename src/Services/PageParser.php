@@ -2,30 +2,37 @@
 
 namespace Hexlet\Code\Services;
 
+use DiDom\Document;
+
 class PageParser
 {
     public function parsePageContent(string $html): array
     {
+        $document = new Document($html);
+        
         return [
-            'h1' => $this->trimText($this->extractByRegex($html, '/<h1[^>]*>(.*?)<\/h1>/si')),
-            'title' => $this->trimText($this->extractByRegex($html, '/<title[^>]*>(.*?)<\/title>/si')),
-            'description' => $this->trimText(
-                $this->extractByRegex(
-                    $html,
-                    '/<meta[^>]*name=["\']description["\'][^>]*content=["\'](.*?)["\'][^>]*>/si'
-                )
-            )
+            'h1' => $this->trimText($this->extractH1($document)),
+            'title' => $this->trimText($this->extractTitle($document)),
+            'description' => $this->trimText($this->extractDescription($document))
         ];
     }
 
-// Метод для извлечения через регулярки
-    private function extractByRegex(string $html, string $pattern): string
+    private function extractH1(Document $document): string
     {
-        if (preg_match($pattern, $html, $matches)) {
-            $text = trim(strip_tags($matches[1]));
-            return html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        }
-        return '';
+        $h1 = $document->first('h1');
+        return $h1 ? $h1->text() : '';
+    }
+
+    private function extractTitle(Document $document): string
+    {
+        $title = $document->first('title');
+        return $title ? $title->text() : '';
+    }
+
+    private function extractDescription(Document $document): string
+    {
+        $meta = $document->first('meta[name="description"]');
+        return $meta ? $meta->getAttribute('content') : '';
     }
 
     private function trimText(?string $text): ?string
@@ -33,7 +40,6 @@ class PageParser
         if ($text === null || $text === '') {
             return null;
         }
-
         $text = trim($text);
         return mb_strlen($text) > 255 ? mb_substr($text, 0, 252) . '...' : $text;
     }

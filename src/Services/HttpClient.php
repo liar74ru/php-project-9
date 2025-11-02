@@ -12,7 +12,7 @@ class HttpClient
 
     public function __construct()
     {
-        $this->client = new Client();
+        $this->client = $client ?? new Client();
     }
 
     public function fetchUrl(string $url): array

@@ -10,33 +10,41 @@ class UrlCheckService
         private UrlCheck $urlCheckModel,
         private HttpClient $httpClient,
         private PageParser $pageParser
-    ) {
-    }
+    ) {}
 
     public function performCheck(int $urlId, string $url): array
     {
-        $result = $this->httpClient->fetchUrl($url);
-        if (!$result['success']) {
-            return [
-                'success' => false,
-                'check_data' => [
-                    'status_code' => $result['status_code'],
-                    'h1' => null,
-                    'title' => null,
-                    'description' => $result['error']
-                ]
+        $httpResult = $this->httpClient->fetchUrl($url);
+        
+        // Если запрос не удался
+        if (!$httpResult['success']) {
+            $checkData = [
+                'status_code' => $httpResult['status_code'] ?? 0,
+                'h1' => null,
+                'title' => null,
+                'description' => $httpResult['error'] ?? 'Unknown error'
             ];
+            
+            // Сохраняем только если есть статус код
+            if ($httpResult['status_code'] !== null) {
+                $this->urlCheckModel->save($urlId, $checkData);
+            }
+            
+            return ['success' => false, 'check_data' => $checkData];
         }
-        $body = mb_convert_encoding($result['body'], 'UTF-8', 'auto');
-        $parsedData = $this->pageParser->parsePageContent($body);
+
+        // Успешный запрос - парсим и сохраняем
+        $parsedData = $this->pageParser->parsePageContent($httpResult['body']);
 
         $checkData = [
-                'status_code' => $result['status_code'],
-                'h1' => $parsedData['h1'],
-                'title' => $parsedData['title'],
-                'description' => $parsedData['description']
-            ];
+            'status_code' => $httpResult['status_code'],
+            'h1' => $parsedData['h1'],
+            'title' => $parsedData['title'],
+            'description' => $parsedData['description']
+        ];
+
         $this->urlCheckModel->save($urlId, $checkData);
+        
         return [
             'success' => true,
             'check_data' => $checkData

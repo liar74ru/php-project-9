@@ -142,10 +142,17 @@ class UrlController
 
         if ($result['success']) {
             $this->flash->addMessage('success', 'Страница успешно проверена');
+        } elseif ($result['check_data']['status_code'] !== 0) {
+            $this->flash->addMessage(
+                'warning',
+                "Проверка была выполнена успешно, но сервер ответил с ошибкой"
+            );
         } else {
             $this->flash->addMessage('danger', 'Произошла ошибка при проверке, не удалось подключится');
         }
 
-        return $response->withRedirect($this->router->urlFor('urls.show', ['id' => $urlId]));
+        return $response
+        ->withHeader('Location', $this->router->urlFor('urls.show', ['id' => $urlId]))
+        ->withStatus(302);
     }
 }
