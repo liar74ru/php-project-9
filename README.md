@@ -47,12 +47,18 @@ php -S 0.0.0.0:8000 -t public public/index.php
 
 В проекте используется PostgreSQL (файл инициализации `database.sql` в корне). Для разработки:
 
-## Или импортировать файл схемы в существующую базу через psql:
-psql "postgresql://user:password@host:5432/dbname" -f database.sql
+Или импортировать файл схемы в существующую базу через psql:
 
-## Пример (локально, если DATABASE_URL экспортирован):
+```bash
+psql "postgresql://user:password@host:5432/dbname" -f database.sql
+```
+
+Пример (локально, если DATABASE_URL экспортирован):
+
+```bash
 export DATABASE_URL="pgsql://postgres:postgres@127.0.0.1:5432/app"
 psql "$DATABASE_URL" -f database.sql
+```
 
 ## Описание основных маршрутов (API)
 
