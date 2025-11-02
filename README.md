@@ -35,14 +35,6 @@ php -S 0.0.0.0:8000 -t public public/index.php
 
 Откройте в браузере: http://localhost:8000
 
-Запуск через Docker (если настроен docker-compose):
-
-```bash
-make compose
-# или
-docker-compose up --build
-```
-
 ## Команды Makefile
 
 - `make start` — запустить встроенный PHP сервер.
@@ -55,16 +47,15 @@ docker-compose up --build
 
 В проекте используется PostgreSQL (файл инициализации `database.sql` в корне). Для разработки:
 
-1. Создайте БД (если требуется) и импортируйте схему:
-```bash
-# пример: sqlite3 db.sqlite < database.sql
-sqlite3 database.sqlite < database.sql
-```
+# Создать базу (пример, если у вас есть права суперпользователя)
+createdb -h 127.0.0.1 -p 5432 -U postgres app_db
 
-2. Убедитесь, что в `src/Database/Connection.php` или в `DATABASE_URL` (если вы используете переменные окружения) указывается корректный путь/DSN к SQLite.
+# Или импортировать файл схемы в существующую базу через psql:
+psql "postgresql://user:password@host:5432/dbname" -f database.sql
 
-> В тестах используется своей логика и `Connection::get()`. При проблемах посмотрите `tests/Database/ConnectionTest.php`.
-
+# Пример (локально, если DATABASE_URL экспортирован):
+export DATABASE_URL="pgsql://postgres:postgres@127.0.0.1:5432/app"
+psql "$DATABASE_URL" -f database.sql
 ## Описание основных маршрутов (API)
 
 - GET `/` — главная страница с формой добавления URL.
