@@ -1,4 +1,5 @@
 <?php
+
 // Разрешить встроенному PHP-серверу отдавать статические файлы напрямую
 if (PHP_SAPI === 'cli-server') {
     $url  = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
