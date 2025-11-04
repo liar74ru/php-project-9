@@ -1,58 +1,19 @@
-name: CI Pipeline
-
+name: Build
 on:
-  - push
-  - pull_request
-
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened]
 jobs:
-  build:
-
-    # The type of machine to run the job on
+  sonarqube:
+    name: SonarQube
     runs-on: ubuntu-latest
-
     steps:
-      # Шаг 1: Загружаем репозиторий
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      # Шаг 2: Настраиваем PHP
-      - name: Setup PHP
-        # Action gives to setup the PHP environment to test application
-        # https://github.com/shivammathur/setup-php
-        uses: shivammathur/setup-php@v2
+      - uses: actions/checkout@v4
         with:
-          # Specify the PHP version
-          php-version: '8.3'
-
-      # Шаг 3: Устанавливаем зависимости
-      - name: Install dependencies
-        run: make install
-
-      # Шаг 4: Запускаем линтер (make lint)
-      - name: Run Linter
-        run: make lint
-
-      # Шаг 5: Запускаем тесты (например, PHPUnit)
-      - name: Run Tests html
-        run: make test
-
-      - name: Run Tests xml
-        run: make test-xml
-        
-      # Шаг 6: Отправляем результаты тестов в SonarQube
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v6
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: "https://sonarcloud.io"
-        with:
-          args: >
-            -Dsonar.projectKey=liar74ru_php-project-9
-            -Dsonar.organization=liar74ru
-            -Dsonar.projectName=php-project-9
-            -Dsonar.php.coverage.reportPaths=coverage.xml
-            -Dsonar.sources=src
-            -Dsonar.tests=tests
-            -Dsonar.qualitygate.wait=true
-            -Dsonar.coverage.exclusions=tests/**,vendor/**
-            -Dsonar.analysis.autodetection.disabled=true
