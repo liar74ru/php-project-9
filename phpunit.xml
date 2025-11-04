@@ -4,22 +4,22 @@
          bootstrap="vendor/autoload.php"
          colors="true"
          cacheDirectory=".phpunit.cache">
+
     <testsuites>
         <testsuite name="Project Test Suite">
-            <directory>tests</directory>
+            <directory suffix="Test.php">tests</directory>
         </testsuite>
     </testsuites>
-    
+
     <source>
         <include>
             <directory>src</directory>
         </include>
     </source>
-    
+
     <coverage>
         <report>
             <html outputDirectory="coverage"/>
-            <text outputFile="php://stdout"/>
             <clover outputFile="clover.xml"/>
         </report>
     </coverage>

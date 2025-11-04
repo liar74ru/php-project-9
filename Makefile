@@ -38,3 +38,5 @@ lint-fix: # исправление ошибок в коде
 test: # запуск тестов
 	vendor/bin/phpunit --coverage-html coverage-report
 
+test-xml: # запуск тестов с отчетом в формате XML
+	vendor/bin/phpunit --coverage-clover coverage.xml
