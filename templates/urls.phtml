@@ -1,11 +1,12 @@
 <?= $this->fetch('header.phtml', ['router' => $router]) ?>
+
 <?php
-function safe_html($value, $default = '—') {
+  function safe_html($value, $default = '—') {
     if ($value === null) {
-        return $default;
+      return $default;
     }
     return htmlspecialchars((string) $value);
-}
+  }
 ?>
 
 <main class="flex-grow-1">
