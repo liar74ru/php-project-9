@@ -1,3 +1,9 @@
+[![CI Pipeline](https://github.com/liar74ru/php-project-9/actions/workflows/ci.yml/badge.svg)](https://github.com/liar74ru/php-project-9/actions/workflows/ci.yml)
+
+[![hexlet-check](https://github.com/liar74ru/php-project-9/actions/workflows/hexlet-check.yml/badge.svg)](https://github.com/liar74ru/php-project-9/actions/workflows/hexlet-check.yml)
+
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=liar74ru_php-project-9&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=liar74ru_php-project-9)
+
 # PHP Project 9 — Url Checker (Slim + PDO + PostgreSQL)
 
 Учебное веб‑приложение на PHP с использованием Slim Framework и PostgreSQL.  
