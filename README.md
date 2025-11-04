@@ -5,83 +5,93 @@
 
 ## Демо
 
-[https://php-project-9-gfi1.onrender.com](https://php-project-9-gfi1.onrender.com)
+https://php-project-9-gfi1.onrender.com
 
-## Стек:
+## Стек
 - PHP 8+
 - Slim Framework
 - PDO (PostgreSQL)
 - GuzzleHttp (HTTP клиент)
 - PHPUnit (тесты)
-- PHPCS (статический анализ / PSR-12)
-- Docker / docker-compose (опционально)
+- PHPCS (статический анализ / PSR‑12)
+- Docker / docker‑compose (опционально)
+
+---
 
 ## Быстрый старт
 
-Клонирование и установка зависимостей:
+Клонируйте репозиторий и установите зависимости:
 
 ```bash
-git clone <репозиторий>
+git clone https://github.com/liar74ru/php-project-9.git
 cd php-project-9
 make install
 # или
 composer install
 ```
 
-Запуск встроенного PHP‑сервера (локально):
+Запуск встроенного PHP‑сервера для локальной разработки:
 
 ```bash
-# по умолчанию PORT=8000
+# По умолчанию PORT=8000
 make start
 # или
 php -S 0.0.0.0:8000 -t public public/index.php
 ```
 
-Откройте в браузере: http://localhost:8000
+Откройте http://localhost:8000
 
-## Команды Makefile
+---
 
-- `make start` — запустить встроенный PHP сервер.
-- `make install` — `composer install`.
-- `make lint` — проверка кода PHPCS (PSR‑12).
-- `make lint-fix` — автопочинка через phpcbf.
-- `make test` — прогон тестов (phpunit), генерирует `coverage-report`.
+## Переменные окружения и `.env`
 
-## Настройка базы данных
+Создайте файл `.env` в корне проекта (не коммитить в репозиторий). Пример содержимого:
 
-В проекте используется PostgreSQL (файл инициализации `database.sql` в корне). Для разработки:
-
-Для локального использования создайте .env файл:
-
-```bash
-env
-
-DATABASE_URL=pgsql://user:pass@host:5432/dbname
+```dotenv
+# .env.example
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/app
+APP_ENV=development
 ```
 
-Импортируйте схему:
+Чтобы экспортировать переменные для текущей сессии:
 
 ```bash
-# Нужное значение берем из External Database Url
-# Экспортируем переменную окружения, чтобы командная оболочка видела эту переменную
-export DATABASE_URL=postgresql://janedoe:mypassword@localhost:5432/mydb
-# В такой команде выполнятся все инструкции из файла
-psql -a -d $DATABASE_URL -f database.sql
+export DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:5432/app"
+export APP_ENV=development
+```
+
+---
+
+## Настройка и импорт схемы базы данных (PostgreSQL)
+
+В репозитории есть `database.sql` — схема/миграция. Чтобы импортировать:
+
+1. Убедитесь, что PostgreSQL запущен и `DATABASE_URL` корректен.
+
+2. Импорт (если `DATABASE_URL` экспортирован):
+
+```bash
+psql "$DATABASE_URL" -f database.sql
+```
+
+Или явно:
+
+```bash
+psql "postgresql://user:password@host:5432/dbname" -f database.sql
 ```
 
 ## Описание основных маршрутов (API)
 
-- GET `/` — главная страница с формой добавления URL.
-- POST `/urls` — добавить URL (параметр `url[name]`).
-- GET `/urls` — список добавленных URL.
-- GET `/urls/{id}` — страница URL с историей проверок.
-- POST `/urls/{id}/checks` — выполнить проверку страницы (создаёт запись проверки).
+- GET `/` — главная страница с формой добавления URL  
+- POST `/urls` — добавить URL (параметр `url[name]`)  
+- GET `/urls` — список добавленных URL  
+- GET `/urls/{id}` — страница URL с историей проверок  
+- POST `/urls/{id}/checks` — выполнить проверку страницы (создаёт запись проверки)
 
-Пример добавления URL (curl):
+Пример добавления URL:
 
 ```bash
-curl -X POST http://localhost:8000/urls \
-  -d "url[name]=https://example.com"
+curl -X POST http://localhost:8000/urls -d "url[name]=https://example.com"
 ```
 
 Пример запуска проверки:
@@ -90,29 +100,17 @@ curl -X POST http://localhost:8000/urls \
 curl -X POST http://localhost:8000/urls/1/checks
 ```
 
-## Структура проекта
+---
 
-```bash
-php-project-9/
-├── src/
-│   ├── Controllers/     # Контроллеры приложения
-│   ├── Models/          # Модели данных (Url, UrlCheck)
-│   ├── Services/        # Бизнес-логика
-│   └── Database/        # Работа с базой данных
-├── tests/               # PHPUnit тесты
-├── public/              # Публичная директория
-├── templates/           # PHTML шаблоны
-└── database.sql         # Схема базы данных
-```
+## Команды (Makefile)
 
-## Структура проекта (важные директории)
+- `make start` — запустить встроенный PHP‑сервер  
+- `make install` — `composer install`  
+- `make lint` — запуск PHPCS (PSR‑12)  
+- `make lint-fix` — автопочинка через phpcbf  
+- `make test` — прогон тестов (phpunit) и генерация покрытия  
 
-- `public/` — точка входа (index.php) и статические файлы.
-- `src/` — исходный код (Controllers, Models, Services, Database).
-- `templates/` — PHTML шаблоны.
-- `tests/` — PHPUnit тесты.
-- `database.sql` — SQL схема / начальные миграции.
-- `.vscode/settings.json` — настройки workspace (phpValidate, inline suggestions и т.д.)
+---
 
 ## Тесты
 
@@ -126,6 +124,10 @@ vendor/bin/phpunit --coverage-html coverage-report
 
 Отчёт покрытия появится в `coverage-report/index.html`.
 
+> В тестах `tests/Database/ConnectionTest.php` проверяется поведение `Connection::get()` при наличии/отсутствии `DATABASE_URL`. Для CI убедитесь, что `DATABASE_URL` доступна в окружении.
+
+---
+
 ## Кодстайл / Линтинг
 
 Проверка стиля и PSR‑12:
@@ -134,49 +136,67 @@ vendor/bin/phpunit --coverage-html coverage-report
 make lint
 ```
 
-Автоматическая фиксация некоторых ошибок:
+Автоматическое исправление:
 
 ```bash
 make lint-fix
 ```
 
-## Полезные советы по разработке
+---
 
-- VS Code + Remote‑WSL:
-  - Если вы работаете в WSL, откройте проект через Remote‑WSL, чтобы `php.validate.executablePath` мог указывать на `/usr/bin/php`.
-  - Если VS Code запущен в Windows, укажите абсолютный путь к `php.exe` в `settings.json`.
+## Структура проекта
 
-- Flash‑сообщения:
-  - Приложение использует `Slim\Flash\Messages()` и `session_start()` — убедитесь, что сессия инициализирована и ваш шаблон выводит flash‑сообщения (ключи: `success`, `danger`/`error` и т.д.).
+```
+php-project-9/
+├── src/
+│   ├── Controllers/
+│   ├── Models/
+│   ├── Services/
+│   └── Database/
+├── tests/
+├── public/
+├── templates/
+└── database.sql
+```
 
-- Ошибки 500/404:
-  - В `public/index.php` зарегистрированы кастомные обработчики ошибок (ErrorController). При отладке включите `displayErrorDetails: true` только локально.
+---
 
-## Отладка и распространённые проблемы
+## Частые проблемы и отладка
 
-- Ошибка "не является допустимым исполняемым PHP‑файлом" в VS Code:
-  - Укажите корректный путь в `php.validate.executablePath` или откройте проект в WSL.
+- Flash‑сообщения не появляются:
+  - Убедитесь, что `session_start()` вызывается и шаблон выводит `$flash`.
 
-- Flash‑сообщения не показываются:
-  - Проверьте, вызывается ли `session_start()`, вызов `addMessage()` и что шаблон реально выводит сообщения из `$flash`.
+- Кастомная 500 страница не отображается:
+  - Проверьте регистрацию обработчиков ошибок (`$errorMiddleware->setErrorHandler(...)`). Для надёжности используйте замыкания, которые получают контроллер из контейнера и оборачивают вызов в `try/catch`.
 
-- Slim показывает свою отладочную страницу вместо кастомной 500:
-  - Проверьте регистрацию обработчиков ошибок (`$errorMiddleware->setErrorHandler(...)`) — лучше регистрировать замыкания, которые безопасно получают контроллер из контейнера.
+- PHPCS: проверьте регистр имён файлов и BOM.
 
-- PHPCS/Makefile: при ошибках линтера убедитесь, что имя файлов совпадает с классами (`Url.php` vs `url.php`) и удалён BOM.
+- Проблемы с импортом `database.sql`:
+  - Убедитесь, что SQL совместим с PostgreSQL. При необходимости адаптируйте автокомплимент/типы.
+
+---
 
 ## Зависимости
 
-Список зависимостей указан в `composer.json`. Чтобы установить:
+Список в `composer.json`. Установка:
 
 ```bash
 composer install
 ```
 
+---
+
 ## Лицензия
 
-Проект — MIT (при необходимости укажите файл LICENSE).
+MIT
 
-## Контакты
+---
 
-Если нужно помочь с настройкой окружения, тестами или шаблонами — присылайте ошибки/логи (вывод `php -S` / содержимое `storage/logs` / консольные сообщения), и я помогу детально.
+## Контакты и помощь
+
+Если нужно помочь с настройкой PostgreSQL, адаптацией `database.sql`, правками шаблонов или CI/CD (Render), пришлите:
+- содержимое `database.sql` (если нужна адаптация),
+- логи ошибок,
+- вывод `php -S` или логи контейнера.
+
+С радостью помогу детально.
