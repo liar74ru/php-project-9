@@ -55,3 +55,4 @@ jobs:
             -Dsonar.tests=tests
             -Dsonar.qualitygate.wait=true
             -Dsonar.coverage.exclusions=tests/**,vendor/**
+            -Dsonar.analysis.autodetection.disabled=true
