@@ -82,7 +82,7 @@ psql "postgresql://user:password@host:5432/dbname" -f database.sql
 
 ## Описание основных маршрутов (API)
 
-- GET `/` — главная страница с формой добавления  URL  
+- GET `/` — главная страница с формой добавления URL  
 - POST `/urls` — добавить URL (параметр `url[name]`)  
 - GET `/urls` — список добавленных URL  
 - GET `/urls/{id}` — страница URL с историей проверок  
