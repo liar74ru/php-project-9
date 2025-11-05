@@ -45,6 +45,13 @@ class HttpClient
                 'body' => null,
                 'error' => 'request_error'
             ];
+        } catch (\Exception $e) {
+            return [
+                'success' => false,
+                'status_code' => null,
+                'body' => null,
+                'error' => 'unknown_error'
+            ];
         }
     }
 }

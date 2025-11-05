@@ -37,7 +37,7 @@ class UrlCheckServiceTest extends TestCase
         $httpResult = [
             'success' => true,
             'status_code' => 200,
-            'content' => '<html><head><title>Test Title</title></head><body><h1>Test Heading</h1></body></html>'
+            'body' => '<html><head><title>Test Title</title></head><body><h1>Test Heading</h1></body></html>' // исправлено с 'content' на 'body'
         ];
         
         $parsedData = [
@@ -52,8 +52,8 @@ class UrlCheckServiceTest extends TestCase
             ->willReturn($httpResult);
             
         $this->pageParser->expects($this->once())
-            ->method('parse')
-            ->with($httpResult['content'])
+            ->method('parsePageContent') // исправлено с 'parse' на 'parsePageContent'
+            ->with($httpResult['body'])
             ->willReturn($parsedData);
             
         $this->urlCheckModel->expects($this->once())
@@ -71,7 +71,12 @@ class UrlCheckServiceTest extends TestCase
 
         // Assert
         $this->assertTrue($result['success']);
-        $this->assertEquals('Проверка завершена успешно', $result['message']);
+        $this->assertEquals([
+            'status_code' => 200,
+            'h1' => 'Test Heading',
+            'title' => 'Test Title',
+            'description' => 'Test Description'
+        ], $result['check_data']);
     }
 
     public function testPerformCheckWithHttpError(): void
@@ -82,7 +87,7 @@ class UrlCheckServiceTest extends TestCase
         
         $httpResult = [
             'success' => false,
-            'status_code' => 500,
+            'status_code' => 500, // status_code !== null, поэтому save будет вызван
             'error' => 'Connection failed'
         ];
         
@@ -91,8 +96,17 @@ class UrlCheckServiceTest extends TestCase
             ->with($url)
             ->willReturn($httpResult);
 
-        $this->pageParser->expects($this->never())->method('parse');
-        $this->urlCheckModel->expects($this->never())->method('save');
+        $this->pageParser->expects($this->never())->method('parsePageContent');
+        
+        // Ожидаем вызов save, так как status_code !== null
+        $this->urlCheckModel->expects($this->once())
+            ->method('save')
+            ->with($urlId, [
+                'status_code' => 500,
+                'h1' => null,
+                'title' => null,
+                'description' => 'Connection failed'
+            ]);
 
         // Act
         $result = $this->urlCheckService->performCheck($urlId, $url);
@@ -122,8 +136,8 @@ class UrlCheckServiceTest extends TestCase
             ->with($url)
             ->willReturn($httpResult);
 
-        $this->pageParser->expects($this->never())->method('parse');
-        $this->urlCheckModel->expects($this->never())->method('save');
+        $this->pageParser->expects($this->never())->method('parsePageContent'); // исправлено
+        $this->urlCheckModel->expects($this->once())->method('save'); // будет вызван, т.к. status_code !== null
 
         // Act
         $result = $this->urlCheckService->performCheck($urlId, $url);
@@ -142,7 +156,7 @@ class UrlCheckServiceTest extends TestCase
         
         $httpResult = [
             'success' => false,
-            'status_code' => 0,
+            'status_code' => 0, // status_code !== null (0 не равно null), поэтому save будет вызван
             'error' => 'Request timeout'
         ];
         
@@ -151,8 +165,17 @@ class UrlCheckServiceTest extends TestCase
             ->with($url)
             ->willReturn($httpResult);
 
-        $this->pageParser->expects($this->never())->method('parse');
-        $this->urlCheckModel->expects($this->never())->method('save');
+        $this->pageParser->expects($this->never())->method('parsePageContent');
+        
+        // Ожидаем вызов save, так как status_code = 0 (не null)
+        $this->urlCheckModel->expects($this->once())
+            ->method('save')
+            ->with($urlId, [
+                'status_code' => 0,
+                'h1' => null,
+                'title' => null,
+                'description' => 'Request timeout'
+            ]);
 
         // Act
         $result = $this->urlCheckService->performCheck($urlId, $url);
@@ -172,7 +195,7 @@ class UrlCheckServiceTest extends TestCase
         $httpResult = [
             'success' => true,
             'status_code' => 200,
-            'content' => ''
+            'body' => '' // исправлено с 'content' на 'body'
         ];
         
         $parsedData = [
@@ -187,7 +210,7 @@ class UrlCheckServiceTest extends TestCase
             ->willReturn($httpResult);
             
         $this->pageParser->expects($this->once())
-            ->method('parse')
+            ->method('parsePageContent') // исправлено с 'parse' на 'parsePageContent'
             ->with('')
             ->willReturn($parsedData);
             

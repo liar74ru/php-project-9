@@ -32,7 +32,8 @@ class UrlController
             'urlValue' => '',
             'errors' => [],
             'router' => $this->router,
-            'flash' => $this->flash->getMessages()
+            'flash' => $this->flash->getMessages(),
+            'choice' => 'home'
         ];
         return $this->renderer->render($response, "/index.phtml", $params);
     }
@@ -55,7 +56,8 @@ class UrlController
         $params = [
             'urls' => $result,
             'router' => $this->router,
-            'flash' => $this->flash->getMessages()
+            'flash' => $this->flash->getMessages(),
+            'choice' => 'urls'
         ];
 
         return $this->renderer->render($response, "urls.phtml", $params);
@@ -77,7 +79,8 @@ class UrlController
             'urlData' => $urlData,
             'checks' => $checks,
             'flash' => $this->flash->getMessages(),
-            'router' => $this->router
+            'router' => $this->router,
+            'choice' => 'urls'
         ];
 
         return $this->renderer->render($response, 'url.phtml', $params);
@@ -97,7 +100,8 @@ class UrlController
                 'showValidation' => true,
                 'errors' => $normalized,
                 'router' => $this->router,
-                'flash' => $this->flash->getMessages()
+                'flash' => $this->flash->getMessages(),
+                'choice' => 'home'
             ];
 
             return $this->renderer->render($response->withStatus(422), 'index.phtml', $templateData);

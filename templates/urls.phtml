@@ -1,4 +1,4 @@
-<?= $this->fetch('header.phtml', ['router' => $router]) ?>
+<?= $this->fetch('header.phtml', ['router' => $router, 'choice' => $choice]) ?>
 
 <?php
   function safe_html($value, $default = '—') {

@@ -27,13 +27,18 @@ class HttpClientTest extends TestCase
         $url = 'https://example.com';
         $expectedBody = '<html>Test Content</html>';
         
-        $response = $this->createMock(ResponseInterface::class);
+        // Создаем мок StreamInterface вместо строки
+        $stream = $this->createMock(\Psr\Http\Message\StreamInterface::class);
+        $stream->method('__toString')
+            ->willReturn($expectedBody);
+        
+        $response = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
         $response->method('getStatusCode')->willReturn(200);
-        $response->method('getBody')->willReturn($expectedBody);
+        $response->method('getBody')->willReturn($stream);
         
         $this->guzzleClient->expects($this->once())
             ->method('request')
-            ->with('GET', $url, $this->isType('array'))
+            ->with('GET', $url, $this->isArray())
             ->willReturn($response);
 
         // Act
@@ -45,7 +50,6 @@ class HttpClientTest extends TestCase
         $this->assertEquals($expectedBody, $result['body']);
         $this->assertNull($result['error']);
     }
-
     public function testFetchUrlWithConnectException(): void
     {
         // Arrange
@@ -106,7 +110,7 @@ class HttpClientTest extends TestCase
         
         $this->guzzleClient->expects($this->once())
             ->method('request')
-            ->with('GET', $url, $this->isType('array'))
+            ->with('GET', $url, $this->isArray())
             ->willThrowException(new RequestException(
                 'Not Found',
                 $request,
@@ -132,7 +136,7 @@ class HttpClientTest extends TestCase
         
         $this->guzzleClient->expects($this->once())
             ->method('request')
-            ->with('GET', $url, $this->isType('array'))
+            ->with('GET', $url, $this->isArray())
             ->willThrowException(new RequestException(
                 'Invalid protocol',
                 $request,
@@ -149,23 +153,24 @@ class HttpClientTest extends TestCase
         $this->assertEquals('request_error', $result['error']);
     }
 
-    public function testFetchUrlWithOtherException(): void
+   public function testFetchUrlWithOtherException(): void
     {
         // Arrange
         $url = 'https://example.com';
         
         $this->guzzleClient->expects($this->once())
             ->method('request')
-            ->with('GET', $url, $this->isType('array'))
+            ->with('GET', $url, $this->isArray())
             ->willThrowException(new \InvalidArgumentException('Invalid URL'));
 
         // Act
         $result = $this->httpClient->fetchUrl($url);
 
         // Assert
-        // Другие исключения не перехватываются, поэтому тест упадет
-        $this->expectException(\InvalidArgumentException::class);
-        $this->httpClient->fetchUrl($url);
+        $this->assertFalse($result['success']);
+        $this->assertNull($result['status_code']);
+        $this->assertNull($result['body']);
+        $this->assertEquals('unknown_error', $result['error']);
     }
 
     public function testFetchUrlWithTimeout(): void
@@ -208,7 +213,7 @@ class HttpClientTest extends TestCase
         
         $this->guzzleClient->expects($this->once())
             ->method('request')
-            ->with('GET', $url, $this->isType('array'))
+            ->with('GET', $url, $this->isArray())
             ->willThrowException(new RequestException(
                 'Internal Server Error',
                 $request,
