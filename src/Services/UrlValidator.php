@@ -43,10 +43,6 @@ class UrlValidator
 
         $scheme = $parsedUrl['scheme'];
 
-        if (!is_string($scheme)) {
-            return ['errorMessage' => 'Некорректный URL: не удалось извлечь схему'];
-        }
-
         // Проверка что хост не заканчивается на точку
         if (str_ends_with($host, '.')) {
             return ['errorMessage' => 'Некорректный URL: хост не может заканчиваться точкой'];
