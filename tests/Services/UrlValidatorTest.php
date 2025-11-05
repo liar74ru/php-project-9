@@ -23,7 +23,7 @@ class UrlValidatorTest extends TestCase
         $url = 'https://example.com';
 
         // Act
-        $result = $this->urlValidator->validate($url);
+        $result = $this->urlValidator->validateUrl($url);
 
         // Assert
         $this->assertArrayHasKey('url', $result);
@@ -36,7 +36,7 @@ class UrlValidatorTest extends TestCase
         $url = 'invalid-url';
 
         // Act
-        $result = $this->urlValidator->validate($url);
+        $result = $this->urlValidator->validateUrl($url);
 
         // Assert
         $this->assertArrayHasKey('errorMessage', $result);
@@ -49,7 +49,7 @@ class UrlValidatorTest extends TestCase
         $url = 'https://example.com.';
 
         // Act
-        $result = $this->urlValidator->validate($url);
+        $result = $this->urlValidator->validateUrl($url);
 
         // Assert
         $this->assertArrayHasKey('errorMessage', $result);
@@ -62,7 +62,7 @@ class UrlValidatorTest extends TestCase
         $url = 'https://example.c';
 
         // Act
-        $result = $this->urlValidator->validate($url);
+        $result = $this->urlValidator->validateUrl($url);
 
         // Assert
         $this->assertArrayHasKey('errorMessage', $result);

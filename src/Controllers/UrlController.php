@@ -88,17 +88,18 @@ class UrlController
 
     public function store(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
+
         $data = $request->getParsedBody() ?? [];
-        $url = $data['url']['name'] ?? '';
+        $originalUrl = $data['url']['name'] ?? '';
 
         $validator = new UrlValidator();
-        $normalized = $validator->validate($url);
+        $result = $validator->validateFormData($data);
 
-        if (!empty($normalized['errorMessage'])) {
+        if (!empty($result['errorMessage'])) {
             $templateData = [
-                'urlValue' => $url,
+                'urlValue' => $originalUrl,
                 'showValidation' => true,
-                'errors' => $normalized,
+                'errors' => $result,
                 'router' => $this->router,
                 'flash' => $this->flash->getMessages(),
                 'choice' => 'home'
@@ -107,14 +108,14 @@ class UrlController
             return $this->renderer->render($response->withStatus(422), 'index.phtml', $templateData);
         }
 
-        $existingUrl = $this->urlModel->findByName($normalized['url']);
+        $existingUrl = $this->urlModel->findByName($result['url']);
 
         if ($existingUrl) {
             $urlId = $existingUrl['id'];
             $this->flash->addMessage('info', 'Страница уже существует');
             $location = $this->router->urlFor('urls.show', ['id' => $urlId]);
         } else {
-            $urlId = $this->urlModel->save($normalized['url']);
+            $urlId = $this->urlModel->save($result['url']);
             $this->flash->addMessage('success', 'Страница успешно добавлена');
             $location = "/urls/{$urlId}";
         }
