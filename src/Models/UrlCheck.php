@@ -27,15 +27,16 @@ class UrlCheck
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function findLastCheck($urlId)
+    public function findLastCheck($urlId): ?array
     {
         $sql = "SELECT * FROM url_checks WHERE url_id = ? ORDER BY created_at DESC LIMIT 1";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$urlId]);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ?: null;
     }
 
-    public function save($urlId, $data)
+    public function save($urlId, $data): int
     {
         $sql = "INSERT INTO url_checks (url_id, status_code, h1, title, description, created_at) 
                 VALUES (?, ?, ?, ?, ?, ?)";

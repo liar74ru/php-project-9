@@ -21,6 +21,11 @@ class UrlValidator
         }
         $host = parse_url($url, PHP_URL_HOST);
 
+        if (!is_string($host) || empty($host)) {
+            return [
+                'errorMessage' => 'Некорректный URL: не удалось извлечь хост'
+            ];
+        }
         // Проверка что хост не заканчивается на точку
         if (str_ends_with($host, '.')) {
             return [

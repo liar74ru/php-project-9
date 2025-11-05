@@ -3,6 +3,7 @@
 namespace Hexlet\Code\Services;
 
 use DiDom\Document;
+use DiDom\Element;
 
 class PageParser
 {
@@ -20,19 +21,30 @@ class PageParser
     private function extractH1(Document $document): string
     {
         $h1 = $document->first('h1');
-        return $h1 ? $h1->text() : '';
+        return $h1 ? $this->getElementText($h1) : '';
     }
 
     private function extractTitle(Document $document): string
     {
         $title = $document->first('title');
-        return $title ? $title->text() : '';
+        return $title ? $this->getElementText($title) : '';
     }
 
     private function extractDescription(Document $document): string
     {
         $meta = $document->first('meta[name="description"]');
-        return $meta ? $meta->getAttribute('content') : '';
+        if (!$meta) {
+            return '';
+        }
+
+        // Для meta тегов используем getAttribute
+        return $meta->getAttribute('content') ?? '';
+    }
+
+    private function getElementText(Element $element): string
+    {
+        // Используем метод text() DiDom Element
+        return $element->text();
     }
 
     private function trimText(?string $text): ?string

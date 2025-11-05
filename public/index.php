@@ -1,10 +1,10 @@
 <?php
 
-// Разрешить встроенному PHP-серверу отдавать статические файлы напрямую
+// Разрешить встроенному PHP-серверу отдавать статические файлы напрямую, что бы подгрузить картинку для 404 ошибки
 if (PHP_SAPI === 'cli-server') {
     $url  = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
     $file = __DIR__ . $url;
-    if ($file !== false && is_file($file)) {
+    if (is_string($file) && is_file($file)) {
         return false; // позволить встроенному серверу обслужить файл
     }
 }
@@ -77,7 +77,16 @@ $errorMiddleware = $app->addErrorMiddleware(
     logErrorDetails: true          // детали в логах
 );
 
-$errorMiddleware->setErrorHandler(HttpNotFoundException::class, [ErrorController::class, 'notFound']);
-$errorMiddleware->setErrorHandler(\Throwable::class, [ErrorController::class, 'serverError']);
+$errorMiddleware->setErrorHandler(HttpNotFoundException::class, function ($request, $exception)
+ use ($container) {
+    $errorController = $container->get(ErrorController::class);
+    return $errorController->notFound($request, $exception);
+});
+
+$errorMiddleware->setErrorHandler(\Throwable::class, function ($request, $exception)
+ use ($container) {
+    $errorController = $container->get(ErrorController::class);
+    return $errorController->serverError($request, $exception);
+});
 
 $app->run();

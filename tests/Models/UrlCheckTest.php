@@ -148,7 +148,7 @@ class UrlCheckTest extends TestCase
         $result = $this->urlCheckModel->findLastCheck(1);
 
         // Assert
-        $this->assertFalse($result);
+        $this->assertNull($result);
     }
 
     public function testSave(): void

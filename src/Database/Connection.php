@@ -91,6 +91,9 @@ class Connection
             }
 
             $sql = file_get_contents($sqlPath);
+            if ($sql === false) {
+                throw new RuntimeException('Не удалось прочитать файл: ' . $sqlPath);
+            }
             $pdo->exec($sql);
         } catch (\PDOException $e) {
             // Игнорируем ошибки "table already exists", логируем остальные
