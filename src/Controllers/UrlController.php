@@ -88,8 +88,8 @@ class UrlController
 
     public function store(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        $data = $request->getParsedBody();
-        $url = $data['url']['name'];
+        $data = $request->getParsedBody() ?? [];
+        $url = $data['url']['name'] ?? '';
 
         $validator = new UrlValidator();
         $normalized = $validator->validate($url);

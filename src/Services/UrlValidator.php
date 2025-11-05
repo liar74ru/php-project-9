@@ -19,13 +19,26 @@ class UrlValidator
                 'errorMessage' => 'Некорректный URL'
             ];
         }
-        $host = parse_url($url, PHP_URL_HOST);
 
-        if (!is_string($host) || empty($host)) {
+        // Используем parse_url один раз и проверяем все компоненты
+        $parsedUrl = parse_url($url);
+
+        if ($parsedUrl === false || !isset($parsedUrl['host']) || !is_string($parsedUrl['host'])) {
             return [
                 'errorMessage' => 'Некорректный URL: не удалось извлечь хост'
             ];
         }
+
+        $host = $parsedUrl['host'];
+        $scheme = $parsedUrl['scheme'] ?? 'https';
+
+        // Проверяем что схема - строка
+        if (!is_string($scheme)) {
+            return [
+                'errorMessage' => 'Некорректный URL: не удалось извлечь схему'
+            ];
+        }
+
         // Проверка что хост не заканчивается на точку
         if (str_ends_with($host, '.')) {
             return [
@@ -42,8 +55,8 @@ class UrlValidator
         }
 
         // Нормализация URL
-        $scheme = strtolower(parse_url($url, PHP_URL_SCHEME));
-        $host = strtolower(parse_url($url, PHP_URL_HOST));
+        $scheme = strtolower($scheme);
+        $host = strtolower($host);
 
         return ['url' => $scheme . '://' . $host];
     }

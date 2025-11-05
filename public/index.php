@@ -4,7 +4,7 @@
 if (PHP_SAPI === 'cli-server') {
     $url  = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
     $file = __DIR__ . $url;
-    if (is_string($file) && is_file($file)) {
+    if (is_file($file)) {
         return false; // позволить встроенному серверу обслужить файл
     }
 }

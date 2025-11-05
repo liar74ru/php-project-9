@@ -21,30 +21,19 @@ class PageParser
     private function extractH1(Document $document): string
     {
         $h1 = $document->first('h1');
-        return $h1 ? $this->getElementText($h1) : '';
+        return ($h1 instanceof Element) ? $h1->text() : '';
     }
 
     private function extractTitle(Document $document): string
     {
         $title = $document->first('title');
-        return $title ? $this->getElementText($title) : '';
+        return ($title instanceof Element) ? $title->text() : '';
     }
 
     private function extractDescription(Document $document): string
     {
         $meta = $document->first('meta[name="description"]');
-        if (!$meta) {
-            return '';
-        }
-
-        // Для meta тегов используем getAttribute
-        return $meta->getAttribute('content') ?? '';
-    }
-
-    private function getElementText(Element $element): string
-    {
-        // Используем метод text() DiDom Element
-        return $element->text();
+        return ($meta instanceof Element) ? ($meta->getAttribute('content') ?? '') : '';
     }
 
     private function trimText(?string $text): ?string
