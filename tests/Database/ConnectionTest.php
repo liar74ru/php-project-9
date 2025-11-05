@@ -20,11 +20,11 @@ class ConnectionTest extends TestCase
         // Сохраняем оригинальные значения
         $this->originalEnv = $_ENV;
         $this->originalServer = $_SERVER;
-        
+
         // Полностью очищаем массивы
         $_ENV = [];
         $_SERVER = [];
-        
+
         // Также очищаем через putenv для надежности
         putenv('DATABASE_URL');
     }

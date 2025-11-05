@@ -70,17 +70,17 @@ class UrlControllerTest extends TestCase
         // Arrange
         $request = $this->createRequest();
         $response = $this->createResponse();
-        
+
         $this->flash->method('getMessages')
             ->willReturn([]);
-        
+
         $this->renderer->expects($this->once())
             ->method('render')
             ->with(
                 $response,
                 '/index.phtml',
                 $this->callback(function ($params) {
-                    return isset($params['urlValue']) 
+                    return isset($params['urlValue'])
                         && $params['urlValue'] === ''
                         && isset($params['router']);
                 })
@@ -99,31 +99,31 @@ class UrlControllerTest extends TestCase
         // Arrange
         $request = $this->createRequest();
         $response = $this->createResponse();
-        
+
         $urls = [
             ['id' => 1, 'name' => 'https://example.com'],
             ['id' => 2, 'name' => 'https://google.com']
         ];
-        
+
         $this->urlModel->method('findAll')
             ->willReturn($urls);
-        
+
         $this->urlCheckModel->method('findLastCheck')
             ->willReturnMap([
                 [1, ['created_at' => '2023-01-01', 'status_code' => 200]],
                 [2, null]
             ]);
-        
+
         $this->flash->method('getMessages')
             ->willReturn([]);
-        
+
         $this->renderer->expects($this->once())
             ->method('render')
             ->with(
                 $response,
                 'urls.phtml',
                 $this->callback(function ($params) use ($urls) {
-                    return isset($params['urls']) 
+                    return isset($params['urls'])
                         && count($params['urls']) === 2
                         && $params['urls'][0]['name'] === 'https://example.com';
                 })
@@ -143,21 +143,21 @@ class UrlControllerTest extends TestCase
         $request = $this->createRequest('GET', '/urls/1');
         $response = $this->createResponse();
         $args = ['id' => 1];
-        
+
         $urlData = ['id' => 1, 'name' => 'https://example.com'];
         $checks = [['id' => 1, 'status_code' => 200]];
-        
+
         $this->urlModel->method('find')
             ->with(1)
             ->willReturn($urlData);
-        
+
         $this->urlCheckModel->method('findByUrlId')
             ->with(1)
             ->willReturn($checks);
-        
+
         $this->flash->method('getMessages')
             ->willReturn([]);
-        
+
         $this->renderer->expects($this->once())
             ->method('render')
             ->with(
@@ -183,11 +183,11 @@ class UrlControllerTest extends TestCase
         $request = $this->createRequest('GET', '/urls/999');
         $response = $this->createResponse();
         $args = ['id' => 999];
-        
+
         $this->urlModel->method('find')
             ->with(999)
             ->willReturn(null);
-        
+
         $this->renderer->expects($this->once())
             ->method('render')
             ->with(
@@ -214,19 +214,19 @@ class UrlControllerTest extends TestCase
             'url' => ['name' => 'https://example.com']
         ]);
         $response = $this->createResponse();
-        
+
         $this->urlModel->method('findByName')
             ->with('https://example.com')
             ->willReturn(null);
-        
+
         $this->urlModel->method('save')
             ->with('https://example.com')
             ->willReturn(1);
-        
+
         $this->flash->expects($this->once())
             ->method('addMessage')
             ->with('success', 'Страница успешно добавлена');
-        
+
         $this->router->method('urlFor')
             ->with('urls.show', ['id' => 1])
             ->willReturn('/urls/1');
@@ -246,17 +246,17 @@ class UrlControllerTest extends TestCase
             'url' => ['name' => 'https://example.com']
         ]);
         $response = $this->createResponse();
-        
+
         $existingUrl = ['id' => 1, 'name' => 'https://example.com'];
-        
+
         $this->urlModel->method('findByName')
             ->with('https://example.com')
             ->willReturn($existingUrl);
-        
+
         $this->flash->expects($this->once())
             ->method('addMessage')
             ->with('info', 'Страница уже существует');
-        
+
         $this->router->method('urlFor')
             ->with('urls.show', ['id' => 1])
             ->willReturn('/urls/1');
@@ -276,7 +276,7 @@ class UrlControllerTest extends TestCase
             'url' => ['name' => 'invalid-url']
         ]);
         $response = $this->createResponse();
-        
+
         $this->renderer->expects($this->once())
             ->method('render')
             ->with(
@@ -305,17 +305,17 @@ class UrlControllerTest extends TestCase
         $request = $this->createRequest('POST', '/urls/1/checks');
         $response = $this->createResponse();
         $args = ['id' => 1];
-        
+
         $urlData = ['id' => 1, 'name' => 'https://example.com'];
-        
+
         $this->urlModel->method('find')
             ->with(1)
             ->willReturn($urlData);
-        
+
         $this->flash->expects($this->once())
             ->method('addMessage')
             ->with('success', 'Страница успешно проверена');
-        
+
         $this->router->method('urlFor')
             ->with('urls.show', ['id' => 1])
             ->willReturn('/urls/1');
@@ -334,11 +334,11 @@ class UrlControllerTest extends TestCase
         $request = $this->createRequest('POST', '/urls/999/checks');
         $response = $this->createResponse();
         $args = ['id' => 999];
-        
+
         $this->urlModel->method('find')
             ->with(999)
             ->willReturn(null);
-        
+
         $this->renderer->expects($this->once())
             ->method('render')
             ->with(
@@ -359,35 +359,35 @@ class UrlControllerTest extends TestCase
         $this->assertInstanceOf(ResponseInterface::class, $result);
     }
 
-public function testStoreWithInvalidUrlFormat(): void
-{
-    $this->runInvalidUrlTest('invalid-url');
-}
+    public function testStoreWithInvalidUrlFormat(): void
+    {
+        $this->runInvalidUrlTest('invalid-url');
+    }
 
-public function testStoreWithEmptyUrl(): void
-{
-    $this->runInvalidUrlTest('');
-}
+    public function testStoreWithEmptyUrl(): void
+    {
+        $this->runInvalidUrlTest('');
+    }
 
-public function testStoreWithIncompleteUrl(): void
-{
-    $this->runInvalidUrlTest('http://');
-}
+    public function testStoreWithIncompleteUrl(): void
+    {
+        $this->runInvalidUrlTest('http://');
+    }
 
-public function testStoreWithDomainOnly(): void
-{
-    $this->runInvalidUrlTest('example.com');
-}
+    public function testStoreWithDomainOnly(): void
+    {
+        $this->runInvalidUrlTest('example.com');
+    }
 
-private function runInvalidUrlTest(string $invalidUrl): void
-{
-    // Arrange
-    $request = $this->createRequest('POST', '/urls', [
+    private function runInvalidUrlTest(string $invalidUrl): void
+    {
+        // Arrange
+        $request = $this->createRequest('POST', '/urls', [
         'url' => ['name' => $invalidUrl]
-    ]);
-    $response = $this->createResponse();
-    
-    $this->renderer->expects($this->once())
+        ]);
+        $response = $this->createResponse();
+
+        $this->renderer->expects($this->once())
         ->method('render')
         ->with(
             $this->callback(function ($response) {
@@ -400,31 +400,31 @@ private function runInvalidUrlTest(string $invalidUrl): void
         )
         ->willReturn($response);
 
-    // Act
-    $result = $this->controller->store($request, $response);
+        // Act
+        $result = $this->controller->store($request, $response);
 
-    // Assert
-    $this->assertInstanceOf(ResponseInterface::class, $result);
-}
+        // Assert
+        $this->assertInstanceOf(ResponseInterface::class, $result);
+    }
 
     public function testIndexWithLastCheckData(): void
     {
         // Arrange
         $request = $this->createRequest();
         $response = $this->createResponse();
-        
+
         $urls = [['id' => 1, 'name' => 'https://example.com']];
-        
+
         $this->urlModel->method('findAll')
             ->willReturn($urls);
-        
+
         $this->urlCheckModel->method('findLastCheck')
             ->with(1)
             ->willReturn([
                 'created_at' => '2023-01-01 10:00:00',
                 'status_code' => 200
             ]);
-        
+
         $this->renderer->expects($this->once())
             ->method('render')
             ->with(
@@ -443,4 +443,4 @@ private function runInvalidUrlTest(string $invalidUrl): void
         // Assert
         $this->assertInstanceOf(ResponseInterface::class, $result);
     }
-}   
+}

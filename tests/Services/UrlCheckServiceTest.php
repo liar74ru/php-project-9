@@ -20,7 +20,7 @@ class UrlCheckServiceTest extends TestCase
         $this->urlCheckModel = $this->createMock(UrlCheck::class);
         $this->httpClient = $this->createMock(HttpClient::class);
         $this->pageParser = $this->createMock(PageParser::class);
-        
+
         $this->urlCheckService = new UrlCheckService(
             $this->urlCheckModel,
             $this->httpClient,
@@ -33,29 +33,30 @@ class UrlCheckServiceTest extends TestCase
         // Arrange
         $urlId = 1;
         $url = 'https://example.com';
-        
+
         $httpResult = [
             'success' => true,
             'status_code' => 200,
-            'body' => '<html><head><title>Test Title</title></head><body><h1>Test Heading</h1></body></html>' // исправлено с 'content' на 'body'
+            'body' => '<html><head><title>Test Title</title></head>'
+                . '<body><h1>Test Heading</h1></body></html>'
         ];
-        
+
         $parsedData = [
             'h1' => 'Test Heading',
             'title' => 'Test Title',
             'description' => 'Test Description'
         ];
-        
+
         $this->httpClient->expects($this->once())
             ->method('fetchUrl')
             ->with($url)
             ->willReturn($httpResult);
-            
+
         $this->pageParser->expects($this->once())
             ->method('parsePageContent') // исправлено с 'parse' на 'parsePageContent'
             ->with($httpResult['body'])
             ->willReturn($parsedData);
-            
+
         $this->urlCheckModel->expects($this->once())
             ->method('save')
             ->with($urlId, [
@@ -84,20 +85,20 @@ class UrlCheckServiceTest extends TestCase
         // Arrange
         $urlId = 1;
         $url = 'https://example.com';
-        
+
         $httpResult = [
             'success' => false,
             'status_code' => 500, // status_code !== null, поэтому save будет вызван
             'error' => 'Connection failed'
         ];
-        
+
         $this->httpClient->expects($this->once())
             ->method('fetchUrl')
             ->with($url)
             ->willReturn($httpResult);
 
         $this->pageParser->expects($this->never())->method('parsePageContent');
-        
+
         // Ожидаем вызов save, так как status_code !== null
         $this->urlCheckModel->expects($this->once())
             ->method('save')
@@ -124,13 +125,13 @@ class UrlCheckServiceTest extends TestCase
         // Arrange
         $urlId = 1;
         $url = 'https://example.com/not-found';
-        
+
         $httpResult = [
             'success' => false,
             'status_code' => 404,
             'error' => 'Page not found'
         ];
-        
+
         $this->httpClient->expects($this->once())
             ->method('fetchUrl')
             ->with($url)
@@ -153,20 +154,20 @@ class UrlCheckServiceTest extends TestCase
         // Arrange
         $urlId = 1;
         $url = 'https://slow-website.com';
-        
+
         $httpResult = [
             'success' => false,
             'status_code' => 0, // status_code !== null (0 не равно null), поэтому save будет вызван
             'error' => 'Request timeout'
         ];
-        
+
         $this->httpClient->expects($this->once())
             ->method('fetchUrl')
             ->with($url)
             ->willReturn($httpResult);
 
         $this->pageParser->expects($this->never())->method('parsePageContent');
-        
+
         // Ожидаем вызов save, так как status_code = 0 (не null)
         $this->urlCheckModel->expects($this->once())
             ->method('save')
@@ -191,29 +192,29 @@ class UrlCheckServiceTest extends TestCase
         // Arrange
         $urlId = 1;
         $url = 'https://empty-page.com';
-        
+
         $httpResult = [
             'success' => true,
             'status_code' => 200,
             'body' => '' // исправлено с 'content' на 'body'
         ];
-        
+
         $parsedData = [
             'h1' => null,
             'title' => null,
             'description' => null
         ];
-        
+
         $this->httpClient->expects($this->once())
             ->method('fetchUrl')
             ->with($url)
             ->willReturn($httpResult);
-            
+
         $this->pageParser->expects($this->once())
             ->method('parsePageContent') // исправлено с 'parse' на 'parsePageContent'
             ->with('')
             ->willReturn($parsedData);
-            
+
         $this->urlCheckModel->expects($this->once())
             ->method('save')
             ->with($urlId, [

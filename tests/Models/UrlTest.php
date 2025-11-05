@@ -17,7 +17,7 @@ class UrlTest extends TestCase
     {
         $this->pdo = $this->createMock(PDO::class);
         $this->stmt = $this->createMock(PDOStatement::class);
-        
+
         $this->urlModel = new Url($this->pdo);
     }
 
@@ -28,12 +28,12 @@ class UrlTest extends TestCase
             ['id' => 1, 'name' => 'https://example.com'],
             ['id' => 2, 'name' => 'https://google.com']
         ];
-        
+
         $this->pdo->expects($this->once())
             ->method('query')
             ->with('SELECT * FROM urls ORDER BY id DESC')
             ->willReturn($this->stmt);
-            
+
         $this->stmt->expects($this->once())
             ->method('fetchAll')
             ->with(PDO::FETCH_ASSOC)
@@ -50,16 +50,16 @@ class UrlTest extends TestCase
     {
         // Arrange
         $expectedData = ['id' => 1, 'name' => 'https://example.com'];
-        
+
         $this->pdo->expects($this->once())
             ->method('prepare')
             ->with('SELECT * FROM urls WHERE id = ?')
             ->willReturn($this->stmt);
-            
+
         $this->stmt->expects($this->once())
             ->method('execute')
             ->with([1]);
-            
+
         $this->stmt->expects($this->once())
             ->method('fetch')
             ->with(PDO::FETCH_ASSOC)
@@ -79,11 +79,11 @@ class UrlTest extends TestCase
             ->method('prepare')
             ->with('SELECT * FROM urls WHERE id = ?')
             ->willReturn($this->stmt);
-            
+
         $this->stmt->expects($this->once())
             ->method('execute')
             ->with([999]);
-            
+
         $this->stmt->expects($this->once())
             ->method('fetch')
             ->willReturn(false);
@@ -99,16 +99,16 @@ class UrlTest extends TestCase
     {
         // Arrange
         $expectedData = ['id' => 1, 'name' => 'https://example.com'];
-        
+
         $this->pdo->expects($this->once())
             ->method('prepare')
             ->with('SELECT * FROM urls WHERE name = ?')
             ->willReturn($this->stmt);
-            
+
         $this->stmt->expects($this->once())
             ->method('execute')
             ->with(['https://example.com']);
-            
+
         $this->stmt->expects($this->once())
             ->method('fetch')
             ->with(PDO::FETCH_ASSOC)
@@ -128,11 +128,11 @@ class UrlTest extends TestCase
             ->method('prepare')
             ->with('SELECT * FROM urls WHERE name = ?')
             ->willReturn($this->stmt);
-            
+
         $this->stmt->expects($this->once())
             ->method('execute')
             ->with(['https://nonexistent.com']);
-            
+
         $this->stmt->expects($this->once())
             ->method('fetch')
             ->willReturn(false);
@@ -148,19 +148,19 @@ class UrlTest extends TestCase
     {
         // Arrange
         $url = 'https://example.com';
-        
+
         $this->pdo->expects($this->once())
             ->method('prepare')
             ->with('INSERT INTO urls (name, created_at) VALUES (?, ?)')
             ->willReturn($this->stmt);
-            
+
         $this->stmt->expects($this->once())
             ->method('execute')
             ->with($this->callback(function ($params) use ($url) {
-                return $params[0] === $url 
+                return $params[0] === $url
                     && is_string($params[1]); // created_at timestamp
             }));
-            
+
         $this->pdo->expects($this->once())
             ->method('lastInsertId')
             ->willReturn('1');
@@ -179,11 +179,11 @@ class UrlTest extends TestCase
             ->method('prepare')
             ->with('SELECT id FROM urls WHERE name = ?')
             ->willReturn($this->stmt);
-            
+
         $this->stmt->expects($this->once())
             ->method('execute')
             ->with(['https://example.com']);
-            
+
         $this->stmt->expects($this->once())
             ->method('fetch')
             ->willReturn(['id' => 1]);
@@ -202,11 +202,11 @@ class UrlTest extends TestCase
             ->method('prepare')
             ->with('SELECT id FROM urls WHERE name = ?')
             ->willReturn($this->stmt);
-            
+
         $this->stmt->expects($this->once())
             ->method('execute')
             ->with(['https://nonexistent.com']);
-            
+
         $this->stmt->expects($this->once())
             ->method('fetch')
             ->willReturn(false);

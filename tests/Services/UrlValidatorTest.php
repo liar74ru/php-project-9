@@ -3,7 +3,9 @@
 namespace Hexlet\Code\Tests\Services;
 
 use PHPUnit\Framework\TestCase;
-use Hexlet\Code\Services\UrlValidator; // Исправлено на правильное имя класса
+use Hexlet\Code\Services\UrlValidator;
+
+// Исправлено на правильное имя класса
 
 class UrlValidatorTest extends TestCase
 {

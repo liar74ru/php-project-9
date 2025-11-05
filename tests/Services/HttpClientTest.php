@@ -26,16 +26,16 @@ class HttpClientTest extends TestCase
         // Arrange
         $url = 'https://example.com';
         $expectedBody = '<html>Test Content</html>';
-        
+
         // Создаем мок StreamInterface вместо строки
         $stream = $this->createMock(\Psr\Http\Message\StreamInterface::class);
         $stream->method('__toString')
             ->willReturn($expectedBody);
-        
+
         $response = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
         $response->method('getStatusCode')->willReturn(200);
         $response->method('getBody')->willReturn($stream);
-        
+
         $this->guzzleClient->expects($this->once())
             ->method('request')
             ->with('GET', $url, $this->isArray())
@@ -54,7 +54,7 @@ class HttpClientTest extends TestCase
     {
         // Arrange
         $url = 'https://unreachable-site.com';
-        
+
         $this->guzzleClient->expects($this->once())
             ->method('request')
             ->willThrowException(new ConnectException(
@@ -76,11 +76,11 @@ class HttpClientTest extends TestCase
     {
         // Arrange
         $url = 'https://example.com/not-found';
-        
+
         $request = $this->createMock(RequestInterface::class);
         $response = $this->createMock(ResponseInterface::class);
         $response->method('getStatusCode')->willReturn(404);
-        
+
         $this->guzzleClient->expects($this->once())
             ->method('request')
             ->willThrowException(new RequestException(
@@ -103,11 +103,11 @@ class HttpClientTest extends TestCase
     {
         // Arrange
         $url = 'https://example.com/not-found';
-        
+
         $request = $this->createMock(RequestInterface::class);
         $response = $this->createMock(ResponseInterface::class);
         $response->method('getStatusCode')->willReturn(404);
-        
+
         $this->guzzleClient->expects($this->once())
             ->method('request')
             ->with('GET', $url, $this->isArray())
@@ -131,9 +131,9 @@ class HttpClientTest extends TestCase
     {
         // Arrange
         $url = 'https://invalid-protocol.com';
-        
+
         $request = $this->createMock(RequestInterface::class);
-        
+
         $this->guzzleClient->expects($this->once())
             ->method('request')
             ->with('GET', $url, $this->isArray())
@@ -153,11 +153,11 @@ class HttpClientTest extends TestCase
         $this->assertEquals('request_error', $result['error']);
     }
 
-   public function testFetchUrlWithOtherException(): void
+    public function testFetchUrlWithOtherException(): void
     {
         // Arrange
         $url = 'https://example.com';
-        
+
         $this->guzzleClient->expects($this->once())
             ->method('request')
             ->with('GET', $url, $this->isArray())
@@ -177,7 +177,7 @@ class HttpClientTest extends TestCase
     {
         // Arrange
         $url = 'https://slow-site.com';
-        
+
         $this->guzzleClient->expects($this->once())
             ->method('request')
             ->with(
@@ -206,11 +206,11 @@ class HttpClientTest extends TestCase
     {
         // Arrange
         $url = 'https://example.com/server-error';
-        
+
         $request = $this->createMock(RequestInterface::class);
         $response = $this->createMock(ResponseInterface::class);
         $response->method('getStatusCode')->willReturn(500);
-        
+
         $this->guzzleClient->expects($this->once())
             ->method('request')
             ->with('GET', $url, $this->isArray())

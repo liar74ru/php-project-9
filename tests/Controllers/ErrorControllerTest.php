@@ -59,7 +59,7 @@ class ErrorControllerTest extends TestCase
                 }),
                 '404.phtml',
                 $this->callback(function ($params) {
-                    return isset($params['router']) 
+                    return isset($params['router'])
                         && $params['router'] === $this->router;
                 })
             )
@@ -119,7 +119,7 @@ class ErrorControllerTest extends TestCase
                 }),
                 '500.phtml',
                 $this->callback(function ($params) {
-                    return isset($params['router']) 
+                    return isset($params['router'])
                         && $params['router'] === $this->router;
                 })
             )
@@ -151,7 +151,7 @@ class ErrorControllerTest extends TestCase
                 '500.phtml',
                 $this->callback(function ($params) {
                     // Проверяем, что router передается в шаблон
-                    return isset($params['router']) 
+                    return isset($params['router'])
                         && $params['router'] === $this->router;
                 })
             )
@@ -198,7 +198,7 @@ class ErrorControllerTest extends TestCase
         // Test with displayErrorDetails = false
         $request = $this->createRequest();
         $exception = new RuntimeException('Test exception');
-        
+
         $expectedResponse = $this->responseFactory->createResponse(404);
 
         $this->renderer->expects($this->exactly(2))
@@ -216,7 +216,7 @@ class ErrorControllerTest extends TestCase
 
         // Act - test with false
         $result1 = $this->controller->notFound($request, $exception, false);
-        
+
         // Act - test with true
         $result2 = $this->controller->notFound($request, $exception, true);
 
