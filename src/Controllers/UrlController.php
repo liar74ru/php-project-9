@@ -89,7 +89,7 @@ class UrlController
     public function store(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
 
-        $data = $request->getParsedBody() ?? [];
+        $data = (array)($request->getParsedBody() ?? []);
         $originalUrl = $data['url']['name'] ?? '';
 
         $validator = new UrlValidator();

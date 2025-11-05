@@ -31,12 +31,17 @@ class UrlValidator
 
         $parsedUrl = parse_url($url);
 
-        if ($parsedUrl === false || !isset($parsedUrl['host']) || !is_string($parsedUrl['host'])) {
+        if ($parsedUrl === false || !isset($parsedUrl['host'])) {
             return ['errorMessage' => 'Некорректный URL: не удалось извлечь хост'];
         }
 
         $host = $parsedUrl['host'];
-        $scheme = $parsedUrl['scheme'] ?? 'https';
+
+        if (!isset($parsedUrl['scheme']) || !is_string($parsedUrl['scheme'])) {
+            return ['errorMessage' => 'Некорректный URL: схема не указана'];
+        }
+
+        $scheme = $parsedUrl['scheme'];
 
         if (!is_string($scheme)) {
             return ['errorMessage' => 'Некорректный URL: не удалось извлечь схему'];
