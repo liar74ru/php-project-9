@@ -37,7 +37,8 @@ class UrlValidator
 
         $host = $parsedUrl['host'];
 
-        if (!isset($parsedUrl['scheme']) || !is_string($parsedUrl['scheme'])) {
+        // Проверяем что схема указана (убираем избыточную проверку на string)
+        if (!isset($parsedUrl['scheme'])) {
             return ['errorMessage' => 'Некорректный URL: схема не указана'];
         }
 
