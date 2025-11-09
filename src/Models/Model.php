@@ -45,7 +45,7 @@ abstract class Model
     }
 
     // 3. Найти строку по одному условию
-    public function findOneBy(string $field, $value, string $orderBy = ''): ?array //*
+    public function findOneBy(string $field, string $value, string $orderBy = ''): ?array //*
     {
         $sql = "SELECT * FROM {$this->table} WHERE {$field} = ?";
         if ($orderBy) {
@@ -58,7 +58,7 @@ abstract class Model
     }
 
     // 4. Найти все строки по условию
-    public function findAllBy(string $field, $value, string $orderBy = ''): array //*
+    public function findAllBy(string $field, string $value, string $orderBy = ''): array //*
     {
         $sql = "SELECT * FROM {$this->table} WHERE {$field} = ?";
 
