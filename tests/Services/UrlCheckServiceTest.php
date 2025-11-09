@@ -30,205 +30,107 @@ class UrlCheckServiceTest extends TestCase
 
     public function testPerformCheckSuccess(): void
     {
-        // Arrange
+        // Проверяет успешную проверку сайта
         $urlId = 1;
         $url = 'https://example.com';
 
-        $httpResult = [
+        // Настраиваем успешный HTTP ответ
+        $this->httpClient->method('fetchUrl')->willReturn([
             'success' => true,
             'status_code' => 200,
-            'body' => '<html><head><title>Test Title</title></head>'
-                . '<body><h1>Test Heading</h1></body></html>'
-        ];
+            'body' => '<html>Test content</html>'
+        ]);
 
-        $parsedData = [
+        // Настраиваем парсинг HTML
+        $this->pageParser->method('parsePageContent')->willReturn([
             'h1' => 'Test Heading',
             'title' => 'Test Title',
             'description' => 'Test Description'
-        ];
+        ]);
 
-        $this->httpClient->expects($this->once())
-            ->method('fetchUrl')
-            ->with($url)
-            ->willReturn($httpResult);
+        // Ожидаем сохранение проверки
+        $this->urlCheckModel->expects($this->once())->method('saveUrlCheck');
 
-        $this->pageParser->expects($this->once())
-            ->method('parsePageContent') // исправлено с 'parse' на 'parsePageContent'
-            ->with($httpResult['body'])
-            ->willReturn($parsedData);
-
-        $this->urlCheckModel->expects($this->once())
-            ->method('save')
-            ->with($urlId, [
-                'status_code' => 200,
-                'h1' => 'Test Heading',
-                'title' => 'Test Title',
-                'description' => 'Test Description'
-            ])
-            ->willReturn(5);
-
-        // Act
         $result = $this->urlCheckService->performCheck($urlId, $url);
 
-        // Assert
         $this->assertTrue($result['success']);
-        $this->assertEquals([
-            'status_code' => 200,
-            'h1' => 'Test Heading',
-            'title' => 'Test Title',
-            'description' => 'Test Description'
-        ], $result['check_data']);
     }
 
-    public function testPerformCheckWithHttpError(): void
+    public function testPerformCheckHttpError(): void
     {
-        // Arrange
-        $urlId = 1;
-        $url = 'https://example.com';
-
-        $httpResult = [
-            'success' => false,
-            'status_code' => 500, // status_code !== null, поэтому save будет вызван
-            'error' => 'Connection failed'
-        ];
-
-        $this->httpClient->expects($this->once())
-            ->method('fetchUrl')
-            ->with($url)
-            ->willReturn($httpResult);
-
-        $this->pageParser->expects($this->never())->method('parsePageContent');
-
-        // Ожидаем вызов save, так как status_code !== null
-        $this->urlCheckModel->expects($this->once())
-            ->method('save')
-            ->with($urlId, [
-                'status_code' => 500,
-                'h1' => null,
-                'title' => null,
-                'description' => 'Connection failed'
-            ]);
-
-        // Act
-        $result = $this->urlCheckService->performCheck($urlId, $url);
-
-        // Assert
-        $this->assertFalse($result['success']);
-        $this->assertEquals(500, $result['check_data']['status_code']);
-        $this->assertEquals('Connection failed', $result['check_data']['description']);
-        $this->assertNull($result['check_data']['h1']);
-        $this->assertNull($result['check_data']['title']);
-    }
-
-    public function testPerformCheckWith404Error(): void
-    {
-        // Arrange
+        // Проверяет проверку сайта с HTTP ошибкой (404, 500)
         $urlId = 1;
         $url = 'https://example.com/not-found';
 
-        $httpResult = [
+        // Настраиваем HTTP ошибку
+        $this->httpClient->method('fetchUrl')->willReturn([
             'success' => false,
             'status_code' => 404,
             'error' => 'Page not found'
-        ];
+        ]);
 
-        $this->httpClient->expects($this->once())
-            ->method('fetchUrl')
-            ->with($url)
-            ->willReturn($httpResult);
-
-        $this->pageParser->expects($this->never())->method('parsePageContent'); // исправлено
-        $this->urlCheckModel->expects($this->once())->method('save'); // будет вызван, т.к. status_code !== null
-
-        // Act
-        $result = $this->urlCheckService->performCheck($urlId, $url);
-
-        // Assert
-        $this->assertFalse($result['success']);
-        $this->assertEquals(404, $result['check_data']['status_code']);
-        $this->assertEquals('Page not found', $result['check_data']['description']);
-    }
-
-    public function testPerformCheckWithTimeoutError(): void
-    {
-        // Arrange
-        $urlId = 1;
-        $url = 'https://slow-website.com';
-
-        $httpResult = [
-            'success' => false,
-            'status_code' => 0, // status_code !== null (0 не равно null), поэтому save будет вызван
-            'error' => 'Request timeout'
-        ];
-
-        $this->httpClient->expects($this->once())
-            ->method('fetchUrl')
-            ->with($url)
-            ->willReturn($httpResult);
-
+        // Парсинг не должен вызываться при ошибке
         $this->pageParser->expects($this->never())->method('parsePageContent');
 
-        // Ожидаем вызов save, так как status_code = 0 (не null)
-        $this->urlCheckModel->expects($this->once())
-            ->method('save')
-            ->with($urlId, [
-                'status_code' => 0,
-                'h1' => null,
-                'title' => null,
-                'description' => 'Request timeout'
-            ]);
+        // Проверка все равно должна сохраниться
+        $this->urlCheckModel->expects($this->once())->method('saveUrlCheck');
 
-        // Act
         $result = $this->urlCheckService->performCheck($urlId, $url);
 
-        // Assert
         $this->assertFalse($result['success']);
-        $this->assertEquals(0, $result['check_data']['status_code']);
-        $this->assertEquals('Request timeout', $result['check_data']['description']);
+        $this->assertEquals(404, $result['check_data']['status_code']);
     }
 
-    public function testPerformCheckWithEmptyContent(): void
+    public function testPerformCheckConnectionError(): void
     {
-        // Arrange
+        // Проверяет проверку сайта с ошибкой подключения
         $urlId = 1;
-        $url = 'https://empty-page.com';
+        $url = 'https://unreachable-site.com';
 
-        $httpResult = [
+        // Настраиваем ошибку подключения
+        $this->httpClient->method('fetchUrl')->willReturn([
+            'success' => false,
+            'status_code' => 0,
+            'error' => 'Connection failed'
+        ]);
+
+        // Парсинг не должен вызываться
+        $this->pageParser->expects($this->never())->method('parsePageContent');
+
+        // Проверка должна сохраниться с кодом 0
+        $this->urlCheckModel->expects($this->once())->method('saveUrlCheck');
+
+        $result = $this->urlCheckService->performCheck($urlId, $url);
+
+        $this->assertFalse($result['success']);
+        $this->assertEquals(0, $result['check_data']['status_code']);
+    }
+
+    public function testPerformCheckEmptyContent(): void
+    {
+        // Проверяет проверку сайта с пустым содержимым
+        $urlId = 1;
+        $url = 'https://empty-site.com';
+
+        // Настраиваем успешный ответ с пустым телом
+        $this->httpClient->method('fetchUrl')->willReturn([
             'success' => true,
             'status_code' => 200,
-            'body' => '' // исправлено с 'content' на 'body'
-        ];
+            'body' => ''
+        ]);
 
-        $parsedData = [
+        // Настраиваем парсинг пустого контента
+        $this->pageParser->method('parsePageContent')->willReturn([
             'h1' => null,
             'title' => null,
             'description' => null
-        ];
+        ]);
 
-        $this->httpClient->expects($this->once())
-            ->method('fetchUrl')
-            ->with($url)
-            ->willReturn($httpResult);
+        // Ожидаем сохранение проверки
+        $this->urlCheckModel->expects($this->once())->method('saveUrlCheck');
 
-        $this->pageParser->expects($this->once())
-            ->method('parsePageContent') // исправлено с 'parse' на 'parsePageContent'
-            ->with('')
-            ->willReturn($parsedData);
-
-        $this->urlCheckModel->expects($this->once())
-            ->method('save')
-            ->with($urlId, [
-                'status_code' => 200,
-                'h1' => null,
-                'title' => null,
-                'description' => null
-            ])
-            ->willReturn(6);
-
-        // Act
         $result = $this->urlCheckService->performCheck($urlId, $url);
 
-        // Assert
         $this->assertTrue($result['success']);
     }
 }

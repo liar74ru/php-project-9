@@ -1,7 +1,8 @@
-<?= $this->fetch('header.phtml', ['router' => $router, 'choice' => $choice]) ?>
-
-<main class="flex-grow-1">
-  <div class="container-lg mt-3">
+<?php
+$title = 'Анализ сайта ' . htmlspecialchars($url['name']);
+ob_start();
+?>
+<div class="container-lg mt-3">
     <!-- Flash сообщения -->
     <?php if (!empty($flash)): ?>
   <div class="flash-messages">
@@ -80,6 +81,7 @@
         <div class="alert alert-danger">URL не найден</div>
       <?php endif; ?>
   </div>    
-</main>
-
-<?= $this->fetch('footer.phtml') ?>
+<?php
+$content = ob_get_clean();
+include __DIR__ . '/../../layouts/app.phtml';
+?>

@@ -2,45 +2,33 @@
 
 namespace Hexlet\Code\Models;
 
-use PDO;
 use Carbon\Carbon;
 
-class Url
+class Url extends Model
 {
-    private PDO $db;
-    public function __construct(PDO $db)
+    protected string $table = 'urls';
+
+    public function findAllUrl(): array //findAll
     {
-        $this->db = $db;
+        return $this->findAll();
     }
-    public function findAll(): array
+
+    public function findByIdUrl(int $id): ?array
     {
-        $stmt = $this->db->query("SELECT * FROM urls ORDER BY id DESC");
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $this->findOneBy('id', $id);
     }
-    public function find(int $id): ?array
+
+    public function findByNameUrl(string $name): ?array
     {
-        $stmt = $this->db->prepare("SELECT * FROM urls WHERE id = ?");
-        $stmt->execute([$id]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $result ?: null;
+        return $this->findOneBy('name', $name);
     }
-    public function findByName(string $name): ?array
+
+    public function saveNewUrl(string $name): int
     {
-        $stmt = $this->db->prepare("SELECT * FROM urls WHERE name = ?");
-        $stmt->execute([$name]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $result ?: null;
-    }
-    public function save(string $name): int
-    {
-        $stmt = $this->db->prepare("INSERT INTO urls (name, created_at) VALUES (?, ?)");
-        $stmt->execute([$name, Carbon::now()->toDateTimeString()]);
-        return (int) $this->db->lastInsertId();
-    }
-    public function exists(string $name): bool
-    {
-        $stmt = $this->db->prepare("SELECT id FROM urls WHERE name = ?");
-        $stmt->execute([$name]);
-        return (bool) $stmt->fetch(PDO::FETCH_ASSOC);
+        $data = [
+            'name' => $name,
+            'created_at' => Carbon::now()->toDateTimeString()
+        ];
+        return (int) $this->insert($data);
     }
 }

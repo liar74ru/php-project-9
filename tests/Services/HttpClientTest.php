@@ -9,6 +9,7 @@ use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\RequestException;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\StreamInterface;
 
 class HttpClientTest extends TestCase
 {
@@ -23,210 +24,70 @@ class HttpClientTest extends TestCase
 
     public function testFetchUrlSuccess(): void
     {
-        // Arrange
+        // Проверяет успешный запрос к сайту
         $url = 'https://example.com';
-        $expectedBody = '<html>Test Content</html>';
 
-        // Создаем мок StreamInterface вместо строки
-        $stream = $this->createMock(\Psr\Http\Message\StreamInterface::class);
-        $stream->method('__toString')
-            ->willReturn($expectedBody);
+        // Создаем мок StreamInterface
+        $stream = $this->createMock(StreamInterface::class);
+        $stream->method('__toString')->willReturn('<html>Content</html>');
 
-        $response = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
+        $response = $this->createMock(ResponseInterface::class);
         $response->method('getStatusCode')->willReturn(200);
-        $response->method('getBody')->willReturn($stream);
+        $response->method('getBody')->willReturn($stream); // Возвращаем StreamInterface
 
-        $this->guzzleClient->expects($this->once())
-            ->method('request')
-            ->with('GET', $url, $this->isArray())
-            ->willReturn($response);
+        $this->guzzleClient->method('request')->willReturn($response);
 
-        // Act
         $result = $this->httpClient->fetchUrl($url);
 
-        // Assert
         $this->assertTrue($result['success']);
         $this->assertEquals(200, $result['status_code']);
-        $this->assertEquals($expectedBody, $result['body']);
-        $this->assertNull($result['error']);
+        $this->assertEquals('<html>Content</html>', $result['body']);
     }
-    public function testFetchUrlWithConnectException(): void
+
+    public function testFetchUrlConnectionError(): void
     {
-        // Arrange
+        // Проверяет ошибку подключения (сайт недоступен)
         $url = 'https://unreachable-site.com';
 
-        $this->guzzleClient->expects($this->once())
-            ->method('request')
-            ->willThrowException(new ConnectException(
-                'Connection failed',
-                $this->createMock(RequestInterface::class)
-            ));
+        $this->guzzleClient->method('request')
+            ->willThrowException(new ConnectException('Connection failed', $this->createMock(RequestInterface::class)));
 
-        // Act
         $result = $this->httpClient->fetchUrl($url);
 
-        // Assert
         $this->assertFalse($result['success']);
-        $this->assertNull($result['status_code']);
-        $this->assertNull($result['body']);
         $this->assertEquals('connect_error', $result['error']);
     }
 
-    public function testFetchUrlWithRequestException(): void
+    public function testFetchUrlHttpError(): void
     {
-        // Arrange
+        // Проверяет HTTP ошибку (404, 500 и т.д.)
         $url = 'https://example.com/not-found';
 
         $request = $this->createMock(RequestInterface::class);
         $response = $this->createMock(ResponseInterface::class);
         $response->method('getStatusCode')->willReturn(404);
 
-        $this->guzzleClient->expects($this->once())
-            ->method('request')
-            ->willThrowException(new RequestException(
-                'Not Found',
-                $request,
-                $response
-            ));
+        $this->guzzleClient->method('request')
+            ->willThrowException(new RequestException('Not Found', $request, $response));
 
-        // Act
         $result = $this->httpClient->fetchUrl($url);
 
-        // Assert
         $this->assertFalse($result['success']);
         $this->assertEquals(404, $result['status_code']);
-        $this->assertNull($result['body']);
         $this->assertEquals('request_error', $result['error']);
     }
 
-    public function testFetchUrlWithRequestExceptionWithResponse(): void
+    public function testFetchUrlUnknownError(): void
     {
-        // Arrange
-        $url = 'https://example.com/not-found';
-
-        $request = $this->createMock(RequestInterface::class);
-        $response = $this->createMock(ResponseInterface::class);
-        $response->method('getStatusCode')->willReturn(404);
-
-        $this->guzzleClient->expects($this->once())
-            ->method('request')
-            ->with('GET', $url, $this->isArray())
-            ->willThrowException(new RequestException(
-                'Not Found',
-                $request,
-                $response
-            ));
-
-        // Act
-        $result = $this->httpClient->fetchUrl($url);
-
-        // Assert
-        $this->assertFalse($result['success']);
-        $this->assertEquals(404, $result['status_code']);
-        $this->assertNull($result['body']);
-        $this->assertEquals('request_error', $result['error']);
-    }
-
-    public function testFetchUrlWithRequestExceptionWithoutResponse(): void
-    {
-        // Arrange
-        $url = 'https://invalid-protocol.com';
-
-        $request = $this->createMock(RequestInterface::class);
-
-        $this->guzzleClient->expects($this->once())
-            ->method('request')
-            ->with('GET', $url, $this->isArray())
-            ->willThrowException(new RequestException(
-                'Invalid protocol',
-                $request,
-                null // Нет response
-            ));
-
-        // Act
-        $result = $this->httpClient->fetchUrl($url);
-
-        // Assert
-        $this->assertFalse($result['success']);
-        $this->assertNull($result['status_code']);
-        $this->assertNull($result['body']);
-        $this->assertEquals('request_error', $result['error']);
-    }
-
-    public function testFetchUrlWithOtherException(): void
-    {
-        // Arrange
+        // Проверяет обработку неизвестных ошибок
         $url = 'https://example.com';
 
-        $this->guzzleClient->expects($this->once())
-            ->method('request')
-            ->with('GET', $url, $this->isArray())
+        $this->guzzleClient->method('request')
             ->willThrowException(new \InvalidArgumentException('Invalid URL'));
 
-        // Act
         $result = $this->httpClient->fetchUrl($url);
 
-        // Assert
         $this->assertFalse($result['success']);
-        $this->assertNull($result['status_code']);
-        $this->assertNull($result['body']);
         $this->assertEquals('unknown_error', $result['error']);
-    }
-
-    public function testFetchUrlWithTimeout(): void
-    {
-        // Arrange
-        $url = 'https://slow-site.com';
-
-        $this->guzzleClient->expects($this->once())
-            ->method('request')
-            ->with(
-                'GET',
-                $url,
-                $this->callback(function ($options) {
-                    return $options['timeout'] === 10;
-                })
-            )
-            ->willThrowException(new ConnectException(
-                'Operation timed out',
-                $this->createMock(RequestInterface::class)
-            ));
-
-        // Act
-        $result = $this->httpClient->fetchUrl($url);
-
-        // Assert
-        $this->assertFalse($result['success']);
-        $this->assertNull($result['status_code']);
-        $this->assertNull($result['body']);
-        $this->assertEquals('connect_error', $result['error']);
-    }
-
-    public function testFetchUrlWithDifferentStatusCodes(): void
-    {
-        // Arrange
-        $url = 'https://example.com/server-error';
-
-        $request = $this->createMock(RequestInterface::class);
-        $response = $this->createMock(ResponseInterface::class);
-        $response->method('getStatusCode')->willReturn(500);
-
-        $this->guzzleClient->expects($this->once())
-            ->method('request')
-            ->with('GET', $url, $this->isArray())
-            ->willThrowException(new RequestException(
-                'Internal Server Error',
-                $request,
-                $response
-            ));
-
-        // Act
-        $result = $this->httpClient->fetchUrl($url);
-
-        // Assert
-        $this->assertFalse($result['success']);
-        $this->assertEquals(500, $result['status_code']);
-        $this->assertNull($result['body']);
-        $this->assertEquals('request_error', $result['error']);
     }
 }

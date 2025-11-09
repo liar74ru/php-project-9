@@ -2,66 +2,34 @@
 
 namespace Hexlet\Code\Models;
 
-use PDO;
 use Carbon\Carbon;
 
-class UrlCheck
+class UrlCheck extends Model
 {
-    private PDO $db;
-
-    public function __construct(PDO $db)
-    {
-        $this->db = $db;
-    }
-
-    public function findByCheaks(): array
-    {
-        $stmt = $this->db->query("SELECT * FROM url_checks ORDER BY created_at DESC");
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
+    protected string $table = 'url_checks';
 
     public function findByUrlId(int $urlId): array
     {
-        $stmt = $this->db->prepare("SELECT * FROM url_checks WHERE url_id = ? ORDER BY created_at DESC");
-        $stmt->execute([$urlId]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $orderBy = 'created_at DESC';
+        return $this->findAllBy('url_id', $urlId, $orderBy);
     }
 
     public function findLastCheck(int $urlId): ?array
     {
-        $sql = "SELECT * FROM url_checks WHERE url_id = ? ORDER BY created_at DESC LIMIT 1";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([$urlId]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $result ?: null;
+        return $this->findOneBy('url_id', $urlId, 'created_at DESC');
     }
 
-    public function save(int $urlId, array $data): int
+    public function saveUrlCheck(int $urlId, array $data): int
     {
-        $sql = "INSERT INTO url_checks (url_id, status_code, h1, title, description, created_at) 
-                VALUES (?, ?, ?, ?, ?, ?)";
+        $data = [
+            'url_id' => $urlId,
+            'status_code' => $data['status_code'] ?? null,
+            'h1' => $data['h1'] ?? null,
+            'title' => $data['title'] ?? null,
+            'description' => $data['description'] ?? null,
+            'created_at' => Carbon::now()->toDateTimeString()
+            ];
 
-        $createdAt = Carbon::now()->toDateTimeString();
-
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([
-            $urlId,
-            $data['status_code'] ?? null,
-            $data['h1'] ?? null,
-            $data['title'] ?? null,
-            $data['description'] ?? null,
-            $createdAt
-        ]);
-
-        return (int)$this->db->lastInsertId();
-    }
-
-    public function getLastCheckDate(int $urlId): ?string
-    {
-        $sql = "SELECT created_at FROM url_checks WHERE url_id = ? ORDER BY created_at DESC LIMIT 1";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([$urlId]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $result ? $result['created_at'] : null;
+        return (int) $this->insert($data);
     }
 }

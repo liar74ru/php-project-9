@@ -17,50 +17,32 @@ class ConnectionTest extends TestCase
 
     protected function setUp(): void
     {
-        // Сохраняем оригинальные значения
+        // СОХРАНЯЕМ ОРИГИНАЛЬНЫЕ ЗНАЧЕНИЯ переменных окружения
         $this->originalEnv = $_ENV;
         $this->originalServer = $_SERVER;
 
-        // Полностью очищаем массивы
+        // ПОЛНОСТЬЮ ОЧИЩАЕМ массивы для изоляции тестов
         $_ENV = [];
         $_SERVER = [];
 
-        // Также очищаем через putenv для надежности
+        // ТАКЖЕ ОЧИЩАЕМ через putenv для надежности
         putenv('DATABASE_URL');
     }
 
     protected function tearDown(): void
     {
-        // Восстанавливаем оригинальные значения
+        // ВОССТАНАВЛИВАЕМ оригинальные значения переменных окружения
         $_ENV = $this->originalEnv;
         $_SERVER = $this->originalServer;
     }
 
-    /*public function testGetThrowsExceptionWhenDatabaseUrlNotSet(): void
-    {
-        //Дополнительная проверка - убедимся что переменные действительно очищены
-        $this->assertArrayNotHasKey('DATABASE_URL', $_ENV);
-        $this->assertArrayNotHasKey('DATABASE_URL', $_SERVER);
-        $this->assertFalse(getenv('DATABASE_URL'));
-
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('DATABASE_URL environment variable is not set');
-
-        Connection::get();
-    }*/
-
-    /*public function testGetThrowsExceptionWithInvalidUrlFormat(): void
-    {
-        $_ENV['DATABASE_URL'] = 'invalid-url-without-protocol';
-
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Invalid DATABASE_URL format. Cannot parse URL: invalid-url-without-protocol');
-
-        Connection::get();
-    }*/
-
     public function testGetThrowsExceptionWithMissingUser(): void
     {
+        // ПРОВЕРЯЕТ: что исключение выбрасывается при отсутствии пользователя в URL
+        // КОГДА: в DATABASE_URL нет компонента 'user'
+        // ДАННЫЕ: URL без имени пользователя
+        // ОЖИДАЕМ: RuntimeException с сообщением о missing 'user'
+
         $_ENV['DATABASE_URL'] = 'pgsql://localhost/db';
 
         $this->expectException(RuntimeException::class);
@@ -71,6 +53,11 @@ class ConnectionTest extends TestCase
 
     public function testGetThrowsExceptionWithMissingPassword(): void
     {
+        // ПРОВЕРЯЕТ: что исключение выбрасывается при отсутствии пароля в URL
+        // КОГДА: в DATABASE_URL нет компонента 'pass'
+        // ДАННЫЕ: URL без пароля
+        // ОЖИДАЕМ: RuntimeException с сообщением о missing 'pass'
+
         $_ENV['DATABASE_URL'] = 'pgsql://user@localhost/db';
 
         $this->expectException(RuntimeException::class);
@@ -79,18 +66,13 @@ class ConnectionTest extends TestCase
         Connection::get();
     }
 
-    /*public function testGetThrowsExceptionWithMissingHost(): void
-    {
-        $_ENV['DATABASE_URL'] = 'pgsql://user:pass@/db';
-
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage("Missing required component 'host' in DATABASE_URL");
-
-        Connection::get();
-    }*/
-
     public function testGetThrowsExceptionWithMissingDatabase(): void
     {
+        // ПРОВЕРЯЕТ: что исключение выбрасывается при отсутствии базы данных в URL
+        // КОГДА: в DATABASE_URL нет компонента 'path' (имя базы данных)
+        // ДАННЫЕ: URL без указания базы данных
+        // ОЖИДАЕМ: RuntimeException с сообщением о missing 'path'
+
         $_ENV['DATABASE_URL'] = 'pgsql://user:pass@localhost';
 
         $this->expectException(RuntimeException::class);
@@ -101,9 +83,14 @@ class ConnectionTest extends TestCase
 
     public function testGetUsesServerVariableWhenEnvNotSet(): void
     {
+        // ПРОВЕРЯЕТ: что используется SERVER переменная когда ENV не установлена
+        // КОГДА: DATABASE_URL есть только в $_SERVER, но нет в $_ENV
+        // ДАННЫЕ: URL только в SERVER переменной
+        // ОЖИДАЕМ: Connection пытается использовать SERVER переменную
+
         $_SERVER['DATABASE_URL'] = 'pgsql://user:pass@localhost/db';
 
-        // Должен использовать SERVER переменную
+        // Должен использовать SERVER переменную (будет исключение из-за подключения к БД)
         $this->expectException(RuntimeException::class);
 
         Connection::get();
@@ -111,10 +98,15 @@ class ConnectionTest extends TestCase
 
     public function testGetPrefersEnvOverServer(): void
     {
+        // ПРОВЕРЯЕТ: что ENV переменная имеет приоритет над SERVER
+        // КОГДА: DATABASE_URL установлен и в $_ENV и в $_SERVER
+        // ДАННЫЕ: разные URL в ENV и SERVER переменных
+        // ОЖИДАЕМ: используется ENV переменная (приоритет выше)
+
         $_ENV['DATABASE_URL'] = 'pgsql://env-user:env-pass@env-host/env-db';
         $_SERVER['DATABASE_URL'] = 'pgsql://server-user:server-pass@server-host/server-db';
 
-        // Должен использовать ENV переменную (приоритет выше)
+        // Должен использовать ENV переменную (будет исключение из-за подключения к БД)
         $this->expectException(RuntimeException::class);
 
         Connection::get();
@@ -122,6 +114,10 @@ class ConnectionTest extends TestCase
 
     public function testEnvironmentVariablesAreProperlyCleared(): void
     {
+        // ПРОВЕРЯЕТ: что переменные окружения правильно очищаются в setUp()
+        // КОГДА: перед выполнением теста
+        // ОЖИДАЕМ: все источники DATABASE_URL пустые
+
         $this->assertArrayNotHasKey('DATABASE_URL', $_ENV);
         $this->assertArrayNotHasKey('DATABASE_URL', $_SERVER);
         $this->assertFalse(getenv('DATABASE_URL'));

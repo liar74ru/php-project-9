@@ -7,9 +7,9 @@ use Hexlet\Code\Models\UrlCheck;
 class UrlCheckService
 {
     public function __construct(
-        private UrlCheck $urlCheckModel,
-        private HttpClient $httpClient,
-        private PageParser $pageParser
+        private readonly UrlCheck $urlCheckModel,
+        private readonly HttpClient $httpClient,
+        private readonly PageParser $pageParser
     ) {
     }
 
@@ -28,7 +28,7 @@ class UrlCheckService
 
             // Сохраняем только если есть статус код
             if ($httpResult['status_code'] !== null) {
-                $this->urlCheckModel->save($urlId, $checkData);
+                $this->urlCheckModel->saveUrlCheck($urlId, $checkData);
             }
 
             return ['success' => false, 'check_data' => $checkData];
@@ -44,7 +44,7 @@ class UrlCheckService
             'description' => $parsedData['description']
         ];
 
-        $this->urlCheckModel->save($urlId, $checkData);
+        $this->urlCheckModel->saveUrlCheck($urlId, $checkData);
 
         return [
             'success' => true,

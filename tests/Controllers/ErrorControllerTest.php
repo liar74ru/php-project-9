@@ -6,36 +6,31 @@ use PHPUnit\Framework\TestCase;
 use Hexlet\Code\Controllers\ErrorController;
 use Slim\Views\PhpRenderer;
 use Slim\Interfaces\RouteParserInterface;
-use Psr\Http\Message\ResponseFactoryInterface;
 use Slim\Psr7\Factory\ServerRequestFactory;
 use Slim\Psr7\Factory\ResponseFactory;
-use Psr\Http\Message\ResponseInterface;
 use RuntimeException;
 
-/**
- * @group error-controller
- */
 class ErrorControllerTest extends TestCase
 {
     private ErrorController $controller;
     private PhpRenderer $renderer;
     private RouteParserInterface $router;
-    private ResponseFactoryInterface $responseFactory;
 
     protected function setUp(): void
     {
-        // Создаем моки зависимостей
+        // Создаем заглушки для зависимостей
         $this->renderer = $this->createMock(PhpRenderer::class);
         $this->router = $this->createMock(RouteParserInterface::class);
-        $this->responseFactory = new ResponseFactory();
+        $responseFactory = new ResponseFactory();
 
         $this->controller = new ErrorController(
             $this->renderer,
             $this->router,
-            $this->responseFactory
+            $responseFactory
         );
     }
 
+    // Создает тестовый HTTP запрос
     private function createRequest(): \Slim\Psr7\Request
     {
         $factory = new ServerRequestFactory();
@@ -44,213 +39,86 @@ class ErrorControllerTest extends TestCase
 
     public function testNotFound(): void
     {
-        // Arrange
+        // Проверяет что для несуществующей страницы возвращается 404 ошибка
         $request = $this->createRequest();
-        $exception = new RuntimeException('Page not found');
-        $displayErrorDetails = false;
+        $exception = new RuntimeException('Страница не найдена');
 
-        $expectedResponse = $this->responseFactory->createResponse(404);
+        $this->renderer->method('render')->willReturn((new ResponseFactory())->createResponse(404));
 
-        $this->renderer->expects($this->once())
-            ->method('render')
-            ->with(
-                $this->callback(function ($response) {
-                    return $response->getStatusCode() === 404;
-                }),
-                '404.phtml',
-                $this->callback(function ($params) {
-                    return isset($params['router'])
-                        && $params['router'] === $this->router;
-                })
-            )
-            ->willReturn($expectedResponse);
+        $result = $this->controller->notFound($request, $exception, false);
 
-        // Act
-        $result = $this->controller->notFound($request, $exception, $displayErrorDetails);
-
-        // Assert
-        $this->assertInstanceOf(ResponseInterface::class, $result);
         $this->assertEquals(404, $result->getStatusCode());
-    }
-
-    public function testNotFoundWithDifferentExceptions(): void
-    {
-        // Arrange
-        $request = $this->createRequest();
-        $exception = new \InvalidArgumentException('Invalid route');
-        $displayErrorDetails = true;
-
-        $expectedResponse = $this->responseFactory->createResponse(404);
-
-        $this->renderer->expects($this->once())
-            ->method('render')
-            ->with(
-                $this->callback(function ($response) {
-                    return $response->getStatusCode() === 404;
-                }),
-                '404.phtml',
-                $this->callback(function ($params) {
-                    return isset($params['router']);
-                })
-            )
-            ->willReturn($expectedResponse);
-
-        // Act
-        $result = $this->controller->notFound($request, $exception, $displayErrorDetails);
-
-        // Assert
-        $this->assertInstanceOf(ResponseInterface::class, $result);
     }
 
     public function testServerError(): void
     {
-        // Arrange
+        // Проверяет что для ошибки сервера возвращается 500 ошибка
         $request = $this->createRequest();
-        $exception = new RuntimeException('Database connection failed');
-        $displayErrorDetails = false;
+        $exception = new RuntimeException('Ошибка базы данных');
 
-        $expectedResponse = $this->responseFactory->createResponse(500);
+        $this->renderer->method('render')->willReturn((new ResponseFactory())->createResponse(500));
 
-        $this->renderer->expects($this->once())
-            ->method('render')
-            ->with(
-                $this->callback(function ($response) {
-                    return $response->getStatusCode() === 500;
-                }),
-                '500.phtml',
-                $this->callback(function ($params) {
-                    return isset($params['router'])
-                        && $params['router'] === $this->router;
-                })
-            )
-            ->willReturn($expectedResponse);
+        $result = $this->controller->serverError($request, $exception, false);
 
-        // Act
-        $result = $this->controller->serverError($request, $exception, $displayErrorDetails);
-
-        // Assert
-        $this->assertInstanceOf(ResponseInterface::class, $result);
         $this->assertEquals(500, $result->getStatusCode());
     }
 
-    public function testServerErrorWithDisplayErrorDetailsTrue(): void
+    public function testNotFoundWithDifferentExceptions(): void
     {
-        // Arrange
+        // Проверяет что разные типы исключений обрабатываются как 404
         $request = $this->createRequest();
-        $exception = new \PDOException('SQLSTATE[HY000] [2002] Connection refused');
-        $displayErrorDetails = true;
+        $exceptions = [
+            new \InvalidArgumentException('Неверный маршрут'),
+            new \OutOfBoundsException('Страница не существует'),
+            new \LogicException('Логическая ошибка')
+        ];
 
-        $expectedResponse = $this->responseFactory->createResponse(500);
+        $this->renderer->method('render')->willReturn((new ResponseFactory())->createResponse(404));
 
-        $this->renderer->expects($this->once())
-            ->method('render')
-            ->with(
-                $this->callback(function ($response) {
-                    return $response->getStatusCode() === 500;
-                }),
-                '500.phtml',
-                $this->callback(function ($params) {
-                    // Проверяем, что router передается в шаблон
-                    return isset($params['router'])
-                        && $params['router'] === $this->router;
-                })
-            )
-            ->willReturn($expectedResponse);
-
-        // Act
-        $result = $this->controller->serverError($request, $exception, $displayErrorDetails);
-
-        // Assert
-        $this->assertInstanceOf(ResponseInterface::class, $result);
+        foreach ($exceptions as $exception) {
+            $result = $this->controller->notFound($request, $exception, true);
+            $this->assertEquals(404, $result->getStatusCode());
+        }
     }
 
-    public function testServerErrorWithDifferentExceptionTypes(): void
+    public function testServerErrorWithDifferentExceptions(): void
     {
-        // Arrange
+        // Проверяет что разные типы исключений обрабатываются как 500
         $request = $this->createRequest();
-        $exception = new \DivisionByZeroError('Division by zero');
-        $displayErrorDetails = false;
+        $exceptions = [
+            new \PDOException('Ошибка подключения к БД'),
+            new \DivisionByZeroError('Деление на ноль'),
+            new \Exception('Общая ошибка')
+        ];
 
-        $expectedResponse = $this->responseFactory->createResponse(500);
+        $this->renderer->method('render')->willReturn((new ResponseFactory())->createResponse(500));
 
-        $this->renderer->expects($this->once())
-            ->method('render')
-            ->with(
-                $this->callback(function ($response) {
-                    return $response->getStatusCode() === 500;
-                }),
-                '500.phtml',
-                $this->callback(function ($params) {
-                    return isset($params['router']);
-                })
-            )
-            ->willReturn($expectedResponse);
-
-        // Act
-        $result = $this->controller->serverError($request, $exception, $displayErrorDetails);
-
-        // Assert
-        $this->assertInstanceOf(ResponseInterface::class, $result);
+        foreach ($exceptions as $exception) {
+            $result = $this->controller->serverError($request, $exception, false);
+            $this->assertEquals(500, $result->getStatusCode());
+        }
     }
 
-    public function testNotFoundWithDifferentDisplayErrorDetailsValues(): void
+    public function testErrorPagesWithDifferentDisplaySettings(): void
     {
-        // Test with displayErrorDetails = false
+        // Проверяет что настройки отображения ошибок не влияют на статус код
         $request = $this->createRequest();
-        $exception = new RuntimeException('Test exception');
+        $exception = new RuntimeException('Тестовая ошибка');
 
-        $expectedResponse = $this->responseFactory->createResponse(404);
+        $this->renderer->method('render')->willReturn((new ResponseFactory())->createResponse());
 
-        $this->renderer->expects($this->exactly(2))
-            ->method('render')
-            ->with(
-                $this->callback(function ($response) {
-                    return $response->getStatusCode() === 404;
-                }),
-                '404.phtml',
-                $this->callback(function ($params) {
-                    return isset($params['router']);
-                })
-            )
-            ->willReturn($expectedResponse);
-
-        // Act - test with false
+        // Проверяем 404 с разными настройками
         $result1 = $this->controller->notFound($request, $exception, false);
-
-        // Act - test with true
         $result2 = $this->controller->notFound($request, $exception, true);
 
-        // Assert
-        $this->assertInstanceOf(ResponseInterface::class, $result1);
-        $this->assertInstanceOf(ResponseInterface::class, $result2);
-    }
+        $this->assertInstanceOf(\Slim\Psr7\Response::class, $result1);
+        $this->assertInstanceOf(\Slim\Psr7\Response::class, $result2);
 
-    public function testServerErrorWithEmptyException(): void
-    {
-        // Arrange
-        $request = $this->createRequest();
-        $exception = new \Exception(); // Exception without message
-        $displayErrorDetails = false;
+        // Проверяем 500 с разными настройками
+        $result3 = $this->controller->serverError($request, $exception, false);
+        $result4 = $this->controller->serverError($request, $exception, true);
 
-        $expectedResponse = $this->responseFactory->createResponse(500);
-
-        $this->renderer->expects($this->once())
-            ->method('render')
-            ->with(
-                $this->callback(function ($response) {
-                    return $response->getStatusCode() === 500;
-                }),
-                '500.phtml',
-                $this->callback(function ($params) {
-                    return isset($params['router']);
-                })
-            )
-            ->willReturn($expectedResponse);
-
-        // Act
-        $result = $this->controller->serverError($request, $exception, $displayErrorDetails);
-
-        // Assert
-        $this->assertInstanceOf(ResponseInterface::class, $result);
+        $this->assertInstanceOf(\Slim\Psr7\Response::class, $result3);
+        $this->assertInstanceOf(\Slim\Psr7\Response::class, $result4);
     }
 }

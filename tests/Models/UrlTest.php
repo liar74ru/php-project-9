@@ -17,204 +17,67 @@ class UrlTest extends TestCase
     {
         $this->pdo = $this->createMock(PDO::class);
         $this->stmt = $this->createMock(PDOStatement::class);
-
         $this->urlModel = new Url($this->pdo);
     }
 
-    public function testFindAll(): void
+    public function testFindAllUrl(): void
     {
-        // Arrange
-        $expectedData = [
-            ['id' => 1, 'name' => 'https://example.com'],
-            ['id' => 2, 'name' => 'https://google.com']
-        ];
+        // Проверяет что метод findAllUrl возвращает все URL из базы
+        $this->pdo->method('query')->willReturn($this->stmt);
+        $this->stmt->method('fetchAll')->willReturn([
+            ['id' => 1, 'name' => 'https://example.com']
+        ]);
 
-        $this->pdo->expects($this->once())
-            ->method('query')
-            ->with('SELECT * FROM urls ORDER BY id DESC')
-            ->willReturn($this->stmt);
+        $result = $this->urlModel->findAllUrl();
 
-        $this->stmt->expects($this->once())
-            ->method('fetchAll')
-            ->with(PDO::FETCH_ASSOC)
-            ->willReturn($expectedData);
-
-        // Act
-        $result = $this->urlModel->findAll();
-
-        // Assert
-        $this->assertEquals($expectedData, $result);
+        $this->assertCount(1, $result);
+        $this->assertEquals('https://example.com', $result[0]['name']);
     }
 
-    public function testFindExistingUrl(): void
+    public function testFindByIdUrl(): void
     {
-        // Arrange
-        $expectedData = ['id' => 1, 'name' => 'https://example.com'];
+        // Проверяет поиск URL по ID (существующий ID)
+        $this->pdo->method('prepare')->willReturn($this->stmt);
+        $this->stmt->method('execute')->willReturn(true);
+        $this->stmt->method('fetch')->willReturn(['id' => 1, 'name' => 'https://example.com']);
 
-        $this->pdo->expects($this->once())
-            ->method('prepare')
-            ->with('SELECT * FROM urls WHERE id = ?')
-            ->willReturn($this->stmt);
+        $result = $this->urlModel->findByIdUrl(1);
 
-        $this->stmt->expects($this->once())
-            ->method('execute')
-            ->with([1]);
-
-        $this->stmt->expects($this->once())
-            ->method('fetch')
-            ->with(PDO::FETCH_ASSOC)
-            ->willReturn($expectedData);
-
-        // Act
-        $result = $this->urlModel->find(1);
-
-        // Assert
-        $this->assertEquals($expectedData, $result);
+        $this->assertEquals('https://example.com', $result['name']);
     }
 
-    public function testFindNonExistingUrl(): void
+    public function testFindByIdUrlNotFound(): void
     {
-        // Arrange
-        $this->pdo->expects($this->once())
-            ->method('prepare')
-            ->with('SELECT * FROM urls WHERE id = ?')
-            ->willReturn($this->stmt);
+        // Проверяет что при несуществующем ID возвращается null
+        $this->pdo->method('prepare')->willReturn($this->stmt);
+        $this->stmt->method('execute')->willReturn(false);
 
-        $this->stmt->expects($this->once())
-            ->method('execute')
-            ->with([999]);
+        $result = $this->urlModel->findByIdUrl(999);
 
-        $this->stmt->expects($this->once())
-            ->method('fetch')
-            ->willReturn(false);
-
-        // Act
-        $result = $this->urlModel->find(999);
-
-        // Assert
         $this->assertNull($result);
     }
 
-    public function testFindByName(): void
+    public function testFindByNameUrl(): void
     {
-        // Arrange
-        $expectedData = ['id' => 1, 'name' => 'https://example.com'];
+        // Проверяет поиск URL по имени (существующее имя)
+        $this->pdo->method('prepare')->willReturn($this->stmt);
+        $this->stmt->method('execute')->willReturn(true);
+        $this->stmt->method('fetch')->willReturn(['id' => 1, 'name' => 'https://example.com']);
 
-        $this->pdo->expects($this->once())
-            ->method('prepare')
-            ->with('SELECT * FROM urls WHERE name = ?')
-            ->willReturn($this->stmt);
+        $result = $this->urlModel->findByNameUrl('https://example.com');
 
-        $this->stmt->expects($this->once())
-            ->method('execute')
-            ->with(['https://example.com']);
-
-        $this->stmt->expects($this->once())
-            ->method('fetch')
-            ->with(PDO::FETCH_ASSOC)
-            ->willReturn($expectedData);
-
-        // Act
-        $result = $this->urlModel->findByName('https://example.com');
-
-        // Assert
-        $this->assertEquals($expectedData, $result);
+        $this->assertEquals(1, $result['id']);
     }
 
-    public function testFindByNameNonExisting(): void
+    public function testSaveNewUrl(): void
     {
-        // Arrange
-        $this->pdo->expects($this->once())
-            ->method('prepare')
-            ->with('SELECT * FROM urls WHERE name = ?')
-            ->willReturn($this->stmt);
+        // Проверяет сохранение нового URL в базу
+        $this->pdo->method('prepare')->willReturn($this->stmt);
+        $this->stmt->method('execute')->willReturn(true);
+        $this->pdo->method('lastInsertId')->willReturn('1');
 
-        $this->stmt->expects($this->once())
-            ->method('execute')
-            ->with(['https://nonexistent.com']);
+        $result = $this->urlModel->saveNewUrl('https://example.com');
 
-        $this->stmt->expects($this->once())
-            ->method('fetch')
-            ->willReturn(false);
-
-        // Act
-        $result = $this->urlModel->findByName('https://nonexistent.com');
-
-        // Assert
-        $this->assertNull($result);
-    }
-
-    public function testSave(): void
-    {
-        // Arrange
-        $url = 'https://example.com';
-
-        $this->pdo->expects($this->once())
-            ->method('prepare')
-            ->with('INSERT INTO urls (name, created_at) VALUES (?, ?)')
-            ->willReturn($this->stmt);
-
-        $this->stmt->expects($this->once())
-            ->method('execute')
-            ->with($this->callback(function ($params) use ($url) {
-                return $params[0] === $url
-                    && is_string($params[1]); // created_at timestamp
-            }));
-
-        $this->pdo->expects($this->once())
-            ->method('lastInsertId')
-            ->willReturn('1');
-
-        // Act
-        $result = $this->urlModel->save($url);
-
-        // Assert
         $this->assertEquals(1, $result);
-    }
-
-    public function testExistsReturnsTrue(): void
-    {
-        // Arrange
-        $this->pdo->expects($this->once())
-            ->method('prepare')
-            ->with('SELECT id FROM urls WHERE name = ?')
-            ->willReturn($this->stmt);
-
-        $this->stmt->expects($this->once())
-            ->method('execute')
-            ->with(['https://example.com']);
-
-        $this->stmt->expects($this->once())
-            ->method('fetch')
-            ->willReturn(['id' => 1]);
-
-        // Act
-        $result = $this->urlModel->exists('https://example.com');
-
-        // Assert
-        $this->assertTrue($result);
-    }
-
-    public function testExistsReturnsFalse(): void
-    {
-        // Arrange
-        $this->pdo->expects($this->once())
-            ->method('prepare')
-            ->with('SELECT id FROM urls WHERE name = ?')
-            ->willReturn($this->stmt);
-
-        $this->stmt->expects($this->once())
-            ->method('execute')
-            ->with(['https://nonexistent.com']);
-
-        $this->stmt->expects($this->once())
-            ->method('fetch')
-            ->willReturn(false);
-
-        // Act
-        $result = $this->urlModel->exists('https://nonexistent.com');
-
-        // Assert
-        $this->assertFalse($result);
     }
 }

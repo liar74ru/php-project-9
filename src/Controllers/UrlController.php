@@ -8,6 +8,7 @@ use Hexlet\Code\Services\UrlValidator;
 use Hexlet\Code\Services\PageParser;
 use Hexlet\Code\Services\HttpClient;
 use Hexlet\Code\Services\UrlCheckService;
+use Hexlet\Code\Services\UrlService;
 use Hexlet\Code\Models\Url;
 use Hexlet\Code\Models\UrlCheck;
 use Slim\Views\PhpRenderer;
@@ -18,16 +19,20 @@ use GuzzleHttp\Client;
 class UrlController
 {
     public function __construct(
-        private Url $urlModel,
-        private UrlCheck $urlCheckModel,
-        private PhpRenderer $renderer,
-        private Messages $flash,
-        private RouteParser $router
+        private readonly Url $urlModel,
+        private readonly UrlCheck $urlCheckModel,
+        private readonly UrlService $urlService,
+        private readonly PhpRenderer $renderer,
+        private readonly Messages $flash,
+        private readonly RouteParser $router
     ) {
     }
 
-    public function home(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
-    {
+    public function home(
+        ServerRequestInterface $request,
+        ResponseInterface $response
+    ): ResponseInterface {
+
         $params = [
             'urlValue' => '',
             'errors' => [],
@@ -35,41 +40,40 @@ class UrlController
             'flash' => $this->flash->getMessages(),
             'choice' => 'home'
         ];
-        return $this->renderer->render($response, "/index.phtml", $params);
+        return $this->renderer->render($response, "pages/home/index.phtml", $params);
     }
-    public function index(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
-    {
-        $urls = $this->urlModel->findAll();
-        $result = [];
+    public function index(
+        ServerRequestInterface $request,
+        ResponseInterface $response
+    ): ResponseInterface {
 
-        foreach ($urls as $url) {
-            $lastCheck = $this->urlCheckModel->findLastCheck($url['id']);
-
-            $result[] = [
-                'id' => $url['id'],
-                'name' => $url['name'],
-                'last_check_date' => $lastCheck['created_at'] ?? null,
-                'last_status_code' => $lastCheck['status_code'] ?? null
-            ];
-        }
+        $urls = $this->urlService->findAllWithLastChecks();
 
         $params = [
-            'urls' => $result,
+            'urls' => $urls,
             'router' => $this->router,
             'flash' => $this->flash->getMessages(),
             'choice' => 'urls'
         ];
 
-        return $this->renderer->render($response, "urls.phtml", $params);
+        return $this->renderer->render($response, "pages/urls/index.phtml", $params);
     }
 
-    public function show(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
-    {
+    public function show(
+        ServerRequestInterface $request,
+        ResponseInterface $response,
+        array $args
+    ): ResponseInterface {
+
         $urlId = (int) $args['id'];
-        $urlData = $this->urlModel->find($urlId);
+        $urlData = $this->urlModel->findByIdUrl($urlId);
 
         if (!$urlData) {
-            return $this->renderer->render($response->withStatus(404), '404.phtml', ['router' => $this->router]);
+            return $this->renderer->render(
+                $response->withStatus(404),
+                'pages/errors/404.phtml',
+                ['router' => $this->router]
+            );
         }
 
         // Получаем проверки для этого URL
@@ -83,11 +87,13 @@ class UrlController
             'choice' => 'urls'
         ];
 
-        return $this->renderer->render($response, 'url.phtml', $params);
+        return $this->renderer->render($response, 'pages/urls/show.phtml', $params);
     }
 
-    public function store(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
-    {
+    public function store(
+        ServerRequestInterface $request,
+        ResponseInterface $response
+    ): ResponseInterface {
 
         $data = (array)($request->getParsedBody() ?? []);
         $originalUrl = $data['url']['name'] ?? '';
@@ -105,17 +111,17 @@ class UrlController
                 'choice' => 'home'
             ];
 
-            return $this->renderer->render($response->withStatus(422), 'index.phtml', $templateData);
+            return $this->renderer->render($response->withStatus(422), 'pages/home/index.phtml', $templateData);
         }
 
-        $existingUrl = $this->urlModel->findByName($result['url']);
+        $existingUrl = $this->urlModel->findByNameUrl($result['url']);
 
         if ($existingUrl) {
             $urlId = $existingUrl['id'];
             $this->flash->addMessage('info', 'Страница уже существует');
             $location = $this->router->urlFor('urls.show', ['id' => $urlId]);
         } else {
-            $urlId = $this->urlModel->save($result['url']);
+            $urlId = $this->urlModel->saveNewUrl($result['url']);
             $this->flash->addMessage('success', 'Страница успешно добавлена');
             $location = "/urls/{$urlId}";
         }
@@ -130,11 +136,16 @@ class UrlController
         ResponseInterface $response,
         array $args
     ): ResponseInterface {
+
         $urlId = (int) $args['id'];
-        $urlData = $this->urlModel->find($urlId);
+        $urlData = $this->urlModel->findByIdUrl($urlId);
 
         if (!$urlData) {
-            return $this->renderer->render($response->withStatus(404), '404.phtml', ['router' => $this->router]);
+            return $this->renderer->render(
+                $response->withStatus(404),
+                'pages/errors/404.phtml',
+                ['router' => $this->router]
+            );
         }
 
         $urlCheckService = new UrlCheckService(

@@ -1,5 +1,7 @@
-<?= $this->fetch('header.phtml', ['router' => $router, 'choice' => $choice]) ?>
-
+<?php
+$title = 'Сайты';
+ob_start();
+?>
 <?php
   function safe_html($value, $default = '—') {
     if ($value === null) {
@@ -8,9 +10,7 @@
     return htmlspecialchars((string) $value);
   }
 ?>
-
-<main class="flex-grow-1">
-  <div class="container-lg mt-3">
+<div class="container-lg mt-3">
     <h1>Сайты</h1>
       <div class="table-responsive">
         <table class="table table-bordered table-hover text-nowrap" data-test="urls">
@@ -39,6 +39,7 @@
         </table>
       </div>
   </div>
-</main>
-
-<?= $this->fetch('footer.phtml') ?>
+<?php
+$content = ob_get_clean();
+include __DIR__ . '/../../layouts/app.phtml';
+?>

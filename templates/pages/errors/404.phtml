@@ -1,6 +1,10 @@
-<?= $this->fetch('header.phtml', ['router' => $router, 'choice' => $choice]) ?>
+<?php $this->layout('../../layouts/app.phtml', [
+    'router' => $router, 
+    'choice' => 'home',
+    'title' => 'Страница не найдена'
+]) ?>
 
-<main class="flex-grow-1">
+<?php $this->start('content') ?>
   <div class="container-lg mt-3">
     <h1>Страница не найдена!</h1>
     <div class="row row-cols-1 row-cols-lg-2 align-items-lg-center">
@@ -20,6 +24,4 @@
       </div>
     </div>
   </div>
-</main>
-
-<?= $this->fetch('footer.phtml', ['router' => $router]) ?>
+<?php $this->stop() ?>

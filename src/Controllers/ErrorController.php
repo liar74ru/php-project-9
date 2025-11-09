@@ -22,7 +22,7 @@ class ErrorController
     ): ResponseInterface {
         return $this->renderer->render(
             $this->responseFactory->createResponse()->withStatus(404), // ← Создаем новый response
-            '404.phtml',
+            'pages/errors/404.phtml',
             ['router' => $this->router]
         );
     }
@@ -34,7 +34,7 @@ class ErrorController
     ): ResponseInterface {
         return $this->renderer->render(
             $this->responseFactory->createResponse()->withStatus(500), // ← Создаем новый response
-            '500.phtml',
+            'pages/errors/500.phtml',
             [
                 'router' => $this->router,
             ]

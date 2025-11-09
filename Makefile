@@ -20,13 +20,13 @@ compose-setup: compose-build
 compose-build:
 	docker-compose build
 
-compose-down:
+compose-down: 
 	docker-compose down -v
 
-validate: # проверить код на ошибки
+validate: # проверка файла composer.json и composer.lock на корректность
 	composer validate
 
-dump: # создание дампа базы данных
+dump: # перестройка автозагрузчика Composer
 	composer dump-autoload
 
 lint: # проверка кода на коректность

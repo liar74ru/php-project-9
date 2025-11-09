@@ -15,14 +15,13 @@ use Slim\Views\PhpRenderer;
 use Slim\Flash\Messages;
 use Slim\Factory\AppFactory;
 use Slim\Exception\HttpNotFoundException;
-use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
 use DI\Container;
 use Hexlet\Code\Database\Connection;
 use Hexlet\Code\Models\Url;
 use Hexlet\Code\Models\UrlCheck;
+use Hexlet\Code\Services\UrlService;
 use Hexlet\Code\Controllers\UrlController;
-use Hexlet\Code\Services\UrlValidator;
 use Hexlet\Code\Controllers\ErrorController;
 
 session_start();
@@ -43,12 +42,14 @@ $container->set(ResponseFactoryInterface::class, fn() => $app->getResponseFactor
 // Модели
 $container->set(Url::class, fn($container) => new Url($container->get('db')));
 $container->set(UrlCheck::class, fn($container) => new UrlCheck($container->get('db')));
+$container->set(UrlService::class, fn($container) => new UrlService($container->get('db')));
 
 // Контроллер UrlController с внедрением зависимостей
 $container->set(UrlController::class, function ($container) {
     return new UrlController(
         $container->get(Url::class),
         $container->get(UrlCheck::class),
+        $container->get(UrlService::class),
         $container->get('renderer'),
         $container->get('flash'),
         $container->get('router')
