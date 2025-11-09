@@ -53,7 +53,7 @@ class UrlValidatorTest extends TestCase
 
         // Assert
         $this->assertArrayHasKey('errorMessage', $result);
-        $this->assertEquals('Некорректный URL', $result['errorMessage']);
+        $this->assertEquals('Некорректный URL: хост не может заканчиваться точкой', $result['errorMessage']);
     }
 
     public function testValidateUrlShortTld(): void
@@ -66,6 +66,6 @@ class UrlValidatorTest extends TestCase
 
         // Assert
         $this->assertArrayHasKey('errorMessage', $result);
-        $this->assertEquals('Некорректный URL', $result['errorMessage']);
+        $this->assertEquals('Некорректный URL: домен верхнего уровня слишком короткий', $result['errorMessage']);
     }
 }

@@ -26,33 +26,33 @@ class UrlValidator
         $v->rule('lengthMax', 'url', 255);
 
         if (!$v->validate()) {
-            return ['errorMessage' => 'Некорректный URL'];
+            return ['errorMessage' => 'Некорректный URL адрес'];
         }
 
         $parsedUrl = parse_url($url);
 
         if ($parsedUrl === false || !isset($parsedUrl['host'])) {
-            return ['errorMessage' => 'Некорректный URL'];
+            return ['errorMessage' => 'Некорректный URL: не удалось извлечь хост'];
         }
 
         $host = $parsedUrl['host'];
 
         // Проверяем что схема указана (убираем избыточную проверку на string)
         if (!isset($parsedUrl['scheme'])) {
-            return ['errorMessage' => 'Некорректный URL'];
+            return ['errorMessage' => 'Некорректный URL: схема не указана'];
         }
 
         $scheme = $parsedUrl['scheme'];
 
         // Проверка что хост не заканчивается на точку
         if (str_ends_with($host, '.')) {
-            return ['errorMessage' => 'Некорректный URL'];
+            return ['errorMessage' => 'Некорректный URL: хост не может заканчиваться точкой'];
         }
 
         // Проверка TLD
         $lastDotPos = strrpos($host, '.');
         if ($lastDotPos === false || strlen($host) - $lastDotPos - 1 < 2) {
-            return ['errorMessage' => 'Некорректный URL'];
+            return ['errorMessage' => 'Некорректный URL: домен верхнего уровня слишком короткий'];
         }
 
         // Нормализация
