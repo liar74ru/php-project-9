@@ -42,6 +42,7 @@ class UrlController
         ];
         return $this->renderer->render($response, "pages/home/index.phtml", $params);
     }
+
     public function index(
         ServerRequestInterface $request,
         ResponseInterface $response
@@ -56,7 +57,7 @@ class UrlController
             'choice' => 'urls'
         ];
 
-        return $this->renderer->render($response, "pages/urls/simpl.phtml", $params);
+        return $this->renderer->render($response, "pages/urls/index.phtml", $params);
     }
 
     public function show(
