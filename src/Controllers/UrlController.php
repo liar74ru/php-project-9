@@ -31,7 +31,7 @@ class UrlController
     public function home(
         ServerRequestInterface $request,
         ResponseInterface $response
-    ): ResponseInterface {
+        ): ResponseInterface {
 
         $params = [
             'urlValue' => '',
@@ -45,7 +45,7 @@ class UrlController
     public function index(
         ServerRequestInterface $request,
         ResponseInterface $response
-    ): ResponseInterface {
+        ): ResponseInterface {
 
         $urls = $this->urlService->findAllWithLastChecks();
 
@@ -63,7 +63,7 @@ class UrlController
         ServerRequestInterface $request,
         ResponseInterface $response,
         array $args
-    ): ResponseInterface {
+        ): ResponseInterface {
 
         $urlId = (int) $args['id'];
         $urlData = $this->urlModel->findByIdUrl($urlId);

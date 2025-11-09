@@ -32,27 +32,27 @@ class UrlValidator
         $parsedUrl = parse_url($url);
 
         if ($parsedUrl === false || !isset($parsedUrl['host'])) {
-            return ['errorMessage' => 'Некорректный URL: не удалось извлечь хост'];
+            return ['errorMessage' => 'Некорректный URL'];
         }
 
         $host = $parsedUrl['host'];
 
         // Проверяем что схема указана (убираем избыточную проверку на string)
         if (!isset($parsedUrl['scheme'])) {
-            return ['errorMessage' => 'Некорректный URL: схема не указана'];
+            return ['errorMessage' => 'Некорректный URL'];
         }
 
         $scheme = $parsedUrl['scheme'];
 
         // Проверка что хост не заканчивается на точку
         if (str_ends_with($host, '.')) {
-            return ['errorMessage' => 'Некорректный URL: хост не может заканчиваться точкой'];
+            return ['errorMessage' => 'Некорректный URL'];
         }
 
         // Проверка TLD
         $lastDotPos = strrpos($host, '.');
         if ($lastDotPos === false || strlen($host) - $lastDotPos - 1 < 2) {
-            return ['errorMessage' => 'Некорректный URL: домен верхнего уровня слишком короткий'];
+            return ['errorMessage' => 'Некорректный URL'];
         }
 
         // Нормализация
