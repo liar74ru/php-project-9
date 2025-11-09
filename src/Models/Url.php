@@ -15,7 +15,7 @@ class Url extends Model
 
     public function findByIdUrl(int $id): ?array
     {
-        return $this->findOneBy('id', $id);
+        return $this->findOneBy('id', (string) $id);
     }
 
     public function findByNameUrl(string $name): ?array
