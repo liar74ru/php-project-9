@@ -56,7 +56,7 @@ class UrlController
             'choice' => 'urls'
         ];
 
-        return $this->renderer->render($response, "pages/urls/index.phtml", $params);
+        return $this->renderer->render($response, "pages/urls/simpl.phtml", $params);
     }
 
     public function show(
@@ -111,7 +111,7 @@ class UrlController
                 'choice' => 'home'
             ];
 
-            return $this->renderer->render($response->withStatus(422), 'pages/home/index.phtml', $templateData);
+            return $this->renderer->render($response->withStatus(422), 'pages/home/simple.phtml', $templateData);
         }
 
         $existingUrl = $this->urlModel->findByNameUrl($result['url']);
