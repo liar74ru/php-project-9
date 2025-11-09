@@ -26,7 +26,7 @@ class UrlValidator
         $v->rule('lengthMax', 'url', 255);
 
         if (!$v->validate()) {
-            return ['errorMessage' => 'Некорректный URL адрес'];
+            return ['errorMessage' => 'Некорректный URL'];
         }
 
         $parsedUrl = parse_url($url);

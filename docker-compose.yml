@@ -12,3 +12,6 @@ services:
     volumes:
       - ".:/app"
       - "/tmp:/tmp"
+    environment:
+      - XDEBUG_MODE=off
+      - XDEBUG_CONFIG=""
