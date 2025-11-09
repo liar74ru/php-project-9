@@ -18,7 +18,7 @@ ob_start();
                            placeholder="https://www.example.com"
                            value="<?= isset($urlValue) ? htmlspecialchars($urlValue) : '' ?>">
                     <?php if (isset($errors)): ?>
-                        <div class="invalid-feedback">
+                        <div class="invalid-feedback d-block">
                             <?= htmlspecialchars($errors['errorMessage']) ?>
                         </div>
                     <?php endif; ?>
