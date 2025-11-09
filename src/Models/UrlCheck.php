@@ -11,12 +11,12 @@ class UrlCheck extends Model
     public function findByUrlId(int $urlId): array
     {
         $orderBy = 'created_at DESC';
-        return $this->findAllBy('url_id', $urlId, $orderBy);
+        return $this->findAllBy('url_id', (string) $urlId, $orderBy);
     }
 
     public function findLastCheck(int $urlId): ?array
     {
-        return $this->findOneBy('url_id', $urlId, 'created_at DESC');
+        return $this->findOneBy('url_id', (string) $urlId, 'created_at DESC');
     }
 
     public function saveUrlCheck(int $urlId, array $data): int
@@ -28,8 +28,8 @@ class UrlCheck extends Model
             'title' => $data['title'] ?? null,
             'description' => $data['description'] ?? null,
             'created_at' => Carbon::now()->toDateTimeString()
-            ];
+        ];
 
-        return (int) $this->insert($data);
+        return $this->insert($data);
     }
 }
