@@ -15,7 +15,7 @@ abstract class Model
     }
 
     // 1. Сохранить строку
-    public function insert(array $data): int //*
+    public function insert(array $data): int
     {
         $filteredData = array_filter($data, fn($value) => $value !== null);
         $fields = array_keys($filteredData);
@@ -36,7 +36,7 @@ abstract class Model
     }
 
     // 2. Найти все строки с сортировкой
-    public function findAll(string $orderBy = 'id DESC'): array //*
+    public function findAll(string $orderBy = 'id DESC'): array
     {
         $sql = "SELECT * FROM {$this->table} ORDER BY {$orderBy}";
         $stmt = $this->db->query($sql);
@@ -45,7 +45,7 @@ abstract class Model
     }
 
     // 3. Найти строку по одному условию
-    public function findOneBy(string $field, string $value, string $orderBy = ''): ?array //*
+    public function findOneBy(string $field, string $value, string $orderBy = ''): ?array
     {
         $sql = "SELECT * FROM {$this->table} WHERE {$field} = ?";
         if ($orderBy) {
@@ -58,7 +58,7 @@ abstract class Model
     }
 
     // 4. Найти все строки по условию
-    public function findAllBy(string $field, string $value, string $orderBy = ''): array //*
+    public function findAllBy(string $field, string $value, string $orderBy = ''): array
     {
         $sql = "SELECT * FROM {$this->table} WHERE {$field} = ?";
 

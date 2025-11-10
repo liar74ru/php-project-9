@@ -1,8 +1,4 @@
 <?php
-$title = 'Сайты';
-ob_start();
-?>
-<?php
   function safe_html($value, $default = '—') {
     if ($value === null) {
       return $default;
@@ -39,7 +35,3 @@ ob_start();
         </table>
       </div>
   </div>
-<?php
-$content = ob_get_clean();
-include __DIR__ . '/../../layouts/app.phtml';
-?>

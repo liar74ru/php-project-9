@@ -20,10 +20,14 @@ class ErrorController
         \Throwable $exception,  // ← Второй параметр - исключение
         bool $displayErrorDetails  // ← Третий параметр - флаг деталей ошибки
     ): ResponseInterface {
+        $params = [
+            'content_template' => 'pages/errors/404.phtml',
+            'router' => $this->router
+        ];
         return $this->renderer->render(
             $this->responseFactory->createResponse()->withStatus(404), // ← Создаем новый response
-            'pages/errors/404.phtml',
-            ['router' => $this->router]
+            'layouts/app.phtml',
+            $params
         );
     }
 
@@ -32,12 +36,14 @@ class ErrorController
         \Throwable $exception,  // ← Второй параметр - исключение
         bool $displayErrorDetails  // ← Третий параметр - флаг деталей ошибки
     ): ResponseInterface {
+        $params = [
+            'content_template' => 'pages/errors/500.phtml',
+            'router' => $this->router
+        ];
         return $this->renderer->render(
             $this->responseFactory->createResponse()->withStatus(500), // ← Создаем новый response
-            'pages/errors/500.phtml',
-            [
-                'router' => $this->router,
-            ]
+            'layouts/app.phtml',
+            $params
         );
     }
 }

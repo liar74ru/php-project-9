@@ -81,13 +81,13 @@ $errorMiddleware = $app->addErrorMiddleware(
 $errorMiddleware->setErrorHandler(HttpNotFoundException::class, function ($request, $exception)
  use ($container) {
     $errorController = $container->get(ErrorController::class);
-    return $errorController->notFound($request, $exception);
+    return $errorController->notFound($request, $exception, false);
 });
 
 $errorMiddleware->setErrorHandler(\Throwable::class, function ($request, $exception)
  use ($container) {
     $errorController = $container->get(ErrorController::class);
-    return $errorController->serverError($request, $exception);
+    return $errorController->serverError($request, $exception, false);
 });
 
 $app->run();

@@ -13,6 +13,7 @@ use Slim\Routing\RouteParser;
 use Slim\Psr7\Factory\ServerRequestFactory;
 use Slim\Psr7\Factory\ResponseFactory;
 use Slim\Psr7\Response;
+use Slim\Exception\HttpNotFoundException;
 
 class UrlControllerTest extends TestCase
 {
@@ -110,17 +111,17 @@ class UrlControllerTest extends TestCase
 
     public function testShowWithNonExistingUrl(): void
     {
-        // Проверяет что для несуществующего URL возвращается 404 ошибка
+        // Проверяет что для несуществующего URL бросается HttpNotFoundException
         $request = $this->createRequest();
         $response = $this->createResponse();
         $args = ['id' => 999];
 
         $this->urlModel->method('findByIdUrl')->willReturn(null);
-        $this->renderer->method('render')->willReturn($response);
 
-        $result = $this->controller->show($request, $response, $args);
+        // Ожидаем исключение
+        $this->expectException(HttpNotFoundException::class);
 
-        $this->assertInstanceOf(Response::class, $result);
+        $this->controller->show($request, $response, $args);
     }
 
     public function testStoreWithValidUrl(): void
@@ -193,11 +194,11 @@ class UrlControllerTest extends TestCase
         $args = ['id' => 999];
 
         $this->urlModel->method('findByIdUrl')->willReturn(null);
-        $this->renderer->method('render')->willReturn($response);
 
-        $result = $this->controller->createChecks($request, $response, $args);
+        // Ожидаем исключение
+        $this->expectException(HttpNotFoundException::class);
 
-        $this->assertInstanceOf(Response::class, $result);
+        $this->controller->createChecks($request, $response, $args);
     }
 
     public function testStoreWithVariousInvalidUrls(): void
@@ -207,7 +208,10 @@ class UrlControllerTest extends TestCase
             'invalid-url',
             '',
             'http://',
-            'example.com'
+            'example.com',
+            'https://gooаываgle.com',
+            'httpsss://abcabca@test.ru',
+            'https://goo gle.com'
         ];
 
         foreach ($invalidUrls as $invalidUrl) {

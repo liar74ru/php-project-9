@@ -11,13 +11,41 @@
           crossorigin="anonymous">
 </head>
 <body class="min-vh-100 d-flex flex-column">
-    <?php include 'templates/components/header.phtml' ?>
+    <header class="flex-shrink-0">
+        <nav class="navbar navbar-expand-md navbar-dark bg-dark px-3">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="<?= $router->urlFor('home') ?>">Анализатор страниц</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link <?= (($choice ?? '') === 'home' ? 'active' : '') ?>" href="<?= $router->urlFor('home') ?>">Главная</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <?= (($choice ?? '') === 'urls' ? 'active' : '') ?>" href="<?= $router->urlFor('urls.index') ?>">Сайты</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
     
     <main class="flex-grow-1">
-        <?= $content ?>
+        <?php if (isset($content_template)): ?>
+            <?php include 'templates/' . $content_template ?>
+        <?php endif; ?>
     </main>
     
-    <?php include 'templates/components/footer.phtml' ?>
+    <footer class="border-top py-3 mt-5 flex-shrink-0">
+        <div class="container-lg">
+            <div class="text-center text-muted">
+                <a href="https://hexlet.io" class="text-muted">Hexlet</a>
+            </div>
+        </div>
+    </footer>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" 
             integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" 

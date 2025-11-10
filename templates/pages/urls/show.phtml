@@ -1,7 +1,3 @@
-<?php
-$title = 'Анализ сайта ' . htmlspecialchars($url['name']);
-ob_start();
-?>
 <div class="container-lg mt-3">
     <!-- Flash сообщения -->
     <?php if (!empty($flash)): ?>
@@ -81,7 +77,3 @@ ob_start();
         <div class="alert alert-danger">URL не найден</div>
       <?php endif; ?>
   </div>    
-<?php
-$content = ob_get_clean();
-include __DIR__ . '/../../layouts/app.phtml';
-?>

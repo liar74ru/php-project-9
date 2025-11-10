@@ -14,7 +14,7 @@ use Hexlet\Code\Models\UrlCheck;
 use Slim\Views\PhpRenderer;
 use Slim\Flash\Messages;
 use Slim\Routing\RouteParser;
-use GuzzleHttp\Client;
+use Slim\Exception\HttpNotFoundException;
 
 class UrlController
 {
@@ -34,13 +34,14 @@ class UrlController
     ): ResponseInterface {
 
         $params = [
+            'content_template' => 'pages/home/index.phtml',
             'urlValue' => '',
             'errors' => [],
             'router' => $this->router,
             'flash' => $this->flash->getMessages(),
             'choice' => 'home'
         ];
-        return $this->renderer->render($response, "pages/home/index.phtml", $params);
+        return $this->renderer->render($response, "layouts/app.phtml", $params);
     }
 
     public function index(
@@ -51,13 +52,14 @@ class UrlController
         $urls = $this->urlService->findAllWithLastChecks();
 
         $params = [
+            'content_template' => 'pages/urls/index.phtml',
             'urls' => $urls,
             'router' => $this->router,
             'flash' => $this->flash->getMessages(),
             'choice' => 'urls'
         ];
 
-        return $this->renderer->render($response, "pages/urls/index.phtml", $params);
+        return $this->renderer->render($response, "layouts/app.phtml", $params);
     }
 
     public function show(
@@ -70,17 +72,13 @@ class UrlController
         $urlData = $this->urlModel->findByIdUrl($urlId);
 
         if (!$urlData) {
-            return $this->renderer->render(
-                $response->withStatus(404),
-                'pages/errors/404.phtml',
-                ['router' => $this->router]
-            );
+            throw new HttpNotFoundException($request);
         }
-
         // Получаем проверки для этого URL
         $checks = $this->urlCheckModel->findByUrlId($urlId);
 
         $params = [
+            'content_template' => 'pages/urls/show.phtml',
             'urlData' => $urlData,
             'checks' => $checks,
             'flash' => $this->flash->getMessages(),
@@ -88,7 +86,7 @@ class UrlController
             'choice' => 'urls'
         ];
 
-        return $this->renderer->render($response, 'pages/urls/show.phtml', $params);
+        return $this->renderer->render($response, "layouts/app.phtml", $params);
     }
 
     public function store(
@@ -104,6 +102,7 @@ class UrlController
 
         if (!empty($result['errorMessage'])) {
             $templateData = [
+                'content_template' => 'pages/home/index.phtml',
                 'urlValue' => $originalUrl,
                 'showValidation' => true,
                 'errors' => $result,
@@ -112,7 +111,7 @@ class UrlController
                 'choice' => 'home'
             ];
 
-            return $this->renderer->render($response->withStatus(422), 'pages/home/simple.phtml', $templateData);
+            return $this->renderer->render($response->withStatus(422), "layouts/app.phtml", $templateData);
         }
 
         $existingUrl = $this->urlModel->findByNameUrl($result['url']);
@@ -120,15 +119,12 @@ class UrlController
         if ($existingUrl) {
             $urlId = $existingUrl['id'];
             $this->flash->addMessage('info', 'Страница уже существует');
-            $location = $this->router->urlFor('urls.show', ['id' => $urlId]);
         } else {
             $urlId = $this->urlModel->saveNewUrl($result['url']);
             $this->flash->addMessage('success', 'Страница успешно добавлена');
-            $location = "/urls/{$urlId}";
         }
-
         return $response
-            ->withHeader('Location', $location)
+            ->withHeader('Location', $this->router->urlFor('urls.show', ['id' => $urlId]))
             ->withStatus(302);
     }
 
@@ -142,11 +138,7 @@ class UrlController
         $urlData = $this->urlModel->findByIdUrl($urlId);
 
         if (!$urlData) {
-            return $this->renderer->render(
-                $response->withStatus(404),
-                'pages/errors/404.phtml',
-                ['router' => $this->router]
-            );
+            throw new HttpNotFoundException($request);
         }
 
         $urlCheckService = new UrlCheckService(

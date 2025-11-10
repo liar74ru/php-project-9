@@ -8,7 +8,7 @@ class Url extends Model
 {
     protected string $table = 'urls';
 
-    public function findAllUrl(): array //findAll
+    public function findAllUrl(): array
     {
         return $this->findAll();
     }
