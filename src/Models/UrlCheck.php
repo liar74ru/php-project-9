@@ -10,13 +10,13 @@ class UrlCheck extends Model
 
     public function findByUrlId(int $urlId): array
     {
-        $orderBy = 'created_at DESC';
+        $orderBy = 'created_at';
         return $this->findAllBy('url_id', (string) $urlId, $orderBy);
     }
 
     public function findLastCheck(int $urlId): ?array
     {
-        return $this->findOneBy('url_id', (string) $urlId, 'created_at DESC');
+        return $this->findOneBy('url_id', (string) $urlId, 'created_at');
     }
 
     public function saveUrlCheck(int $urlId, array $data): int

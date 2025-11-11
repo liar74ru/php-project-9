@@ -3,20 +3,24 @@
 namespace Hexlet\Code\Models;
 
 use PDO;
+use Hexlet\Code\Services\FieldValidator;
 
 abstract class Model
 {
     protected PDO $db;
     protected string $table;
+    protected FieldValidator $validator;
 
-    public function __construct(PDO $db)
+    public function __construct(PDO $db, FieldValidator $validator = null)
     {
         $this->db = $db;
+        $this->validator = $validator ?? new FieldValidator();
     }
 
-    // 1. Сохранить строку
     public function insert(array $data): int
     {
+        $this->validator->validateAllFields($data, $this->table);
+
         $filteredData = array_filter($data, fn($value) => $value !== null);
         $fields = array_keys($filteredData);
         $values = array_values($filteredData);
@@ -35,35 +39,44 @@ abstract class Model
         return (int)$this->db->lastInsertId();
     }
 
-    // 2. Найти все строки с сортировкой
-    public function findAll(string $orderBy = 'id DESC'): array
+    public function findAll(string $orderBy = 'id'): array
     {
-        $sql = "SELECT * FROM {$this->table} ORDER BY {$orderBy}";
+        $this->validator->validateField($orderBy, $this->table);
+
+        $sql = "SELECT * FROM {$this->table} ORDER BY {$orderBy} DESC";
         $stmt = $this->db->query($sql);
         $result = $stmt->fetchAll();
         return $result ?: [];
     }
 
-    // 3. Найти строку по одному условию
     public function findOneBy(string $field, string $value, string $orderBy = ''): ?array
     {
+        $this->validator->validateField($field, $this->table);
+
         $sql = "SELECT * FROM {$this->table} WHERE {$field} = ?";
+
         if ($orderBy) {
-            $sql .= " ORDER BY {$orderBy} LIMIT 1";
+            $this->validator->validateField($orderBy, $this->table);
+            $sql .= " ORDER BY {$orderBy} DESC";
         }
+
+        $sql .= " LIMIT 1";
+
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$value]);
         $result = $stmt->fetch();
         return $result ?: null;
     }
 
-    // 4. Найти все строки по условию
     public function findAllBy(string $field, string $value, string $orderBy = ''): array
     {
+        $this->validator->validateField($field, $this->table);
+
         $sql = "SELECT * FROM {$this->table} WHERE {$field} = ?";
 
         if ($orderBy) {
-            $sql .= " ORDER BY {$orderBy}";
+            $this->validator->validateField($orderBy, $this->table);
+            $sql .= " ORDER BY {$orderBy} DESC";
         }
 
         $stmt = $this->db->prepare($sql);

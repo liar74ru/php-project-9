@@ -17,7 +17,6 @@ class UrlCheckService
     {
         $httpResult = $this->httpClient->fetchUrl($url);
 
-        // Если запрос не удался
         if (!$httpResult['success']) {
             $checkData = [
                 'status_code' => $httpResult['status_code'] ?? 0,
@@ -26,7 +25,6 @@ class UrlCheckService
                 'description' => $httpResult['error'] ?? 'Unknown error'
             ];
 
-            // Сохраняем только если есть статус код
             if ($httpResult['status_code'] !== null) {
                 $this->urlCheckModel->saveUrlCheck($urlId, $checkData);
             }
@@ -34,7 +32,6 @@ class UrlCheckService
             return ['success' => false, 'check_data' => $checkData];
         }
 
-        // Успешный запрос - парсим и сохраняем
         $parsedData = $this->pageParser->parsePageContent($httpResult['body']);
 
         $checkData = [

@@ -16,15 +16,15 @@ use Slim\Flash\Messages;
 use Slim\Routing\RouteParser;
 use Slim\Exception\HttpNotFoundException;
 
-class UrlController
+readonly class UrlController
 {
     public function __construct(
-        private readonly Url $urlModel,
-        private readonly UrlCheck $urlCheckModel,
-        private readonly UrlService $urlService,
-        private readonly PhpRenderer $renderer,
-        private readonly Messages $flash,
-        private readonly RouteParser $router
+        private Url $urlModel,
+        private UrlCheck $urlCheckModel,
+        private UrlService $urlService,
+        private PhpRenderer $renderer,
+        private Messages $flash,
+        private RouteParser $router
     ) {
     }
 
@@ -74,7 +74,7 @@ class UrlController
         if (!$urlData) {
             throw new HttpNotFoundException($request);
         }
-        // Получаем проверки для этого URL
+
         $checks = $this->urlCheckModel->findByUrlId($urlId);
 
         $params = [

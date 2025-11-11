@@ -29,6 +29,6 @@ class Url extends Model
             'name' => $name,
             'created_at' => Carbon::now()->toDateTimeString()
         ];
-        return (int) $this->insert($data);
+        return $this->insert($data);
     }
 }
