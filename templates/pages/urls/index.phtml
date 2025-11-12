@@ -1,11 +1,3 @@
-<?php
-  function safe_html($value, $default = '—') {
-    if ($value === null) {
-      return $default;
-    }
-    return htmlspecialchars((string) $value);
-  }
-?>
 <div class="container-lg mt-3">
     <h1>Сайты</h1>
       <div class="table-responsive">
@@ -27,8 +19,8 @@
                   <?= htmlspecialchars($url['name']) ?>
                 </a>
               </td>
-              <td><?= safe_html($url['last_check_date']) ?></td>
-              <td><?= safe_html($url['last_status_code']) ?></td>
+              <td><?= htmlspecialchars($url['last_check_date']) ?></td>
+              <td><?= htmlspecialchars($url['last_status_code']) ?></td>
             </tr>
             <?php endforeach; ?>
           </tbody>

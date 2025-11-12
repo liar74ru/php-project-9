@@ -52,7 +52,7 @@
           </thead>
           <tbody>
             <!-- Динамические данные проверок -->
-            <?php if (isset($checks) && !empty($checks)): ?>
+            <?php if (isset($checks)): ?>
               <?php foreach ($checks as $check): ?>
                 <tr>
                   <td><?= htmlspecialchars($check['id']) ?></td>
